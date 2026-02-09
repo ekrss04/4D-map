@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>4D карта</title>
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/cesium@1.115.0/Build/Cesium/Widgets/widgets.css'><link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <div id="cesiumContainer"></div>
+
+<!-- Кастомный плеер -->
+<div id="customPlayer">
+  <img src="https://raw.githubusercontent.com/ekrss04/Data-/main/visual/player.svg" id="playerSVG">
+  <div class="player-btn pause" data-action="pause"></div>
+  <div class="player-btn play" data-action="play"></div>
+  <div class="player-btn fast" data-action="fast"></div>
+  <div class="player-btn end" data-action="today"></div>
+</div>
+
+<!-- Таймлайн периодов -->
+<div id="timelineContainer">
+  <img src="https://raw.githubusercontent.com/ekrss04/Data-/main/visual/title_2.svg" 
+       alt="Таймлайн периодов" 
+       id="timelineSVG">
+  
+  <!-- Невидимые кнопки поверх SVG -->
+  <div class="period-btn" data-year="1850" title="Алтайское селение (1850)"></div>
+  <div class="period-btn" data-year="1921" title="Купеческий период (1921)"></div>
+  <div class="period-btn" data-year="1991" title="Советский период (1991)"></div>
+  <div class="period-btn" data-year="2027" title="Современный город (2027)"></div>
+</div>
+
+<div id="mapTitleContainer">
+  <img src="https://raw.githubusercontent.com/ekrss04/Data-/main/visual/title.svg" 
+       alt="Название карты">
+</div>
+
+<!-- Панель кастомных кнопок -->
+<div id="ui">
+  <div id="btnGeocoder" class="ui-btn"></div>
+  <div id="btnHome" class="ui-btn"></div>
+  <div id="btnLayers" class="ui-btn"></div>
+  <div id="btnWalk" class="ui-btn"></div>
+</div>
+
+<!-- Модальные окна для каждого периода -->
+<div id="modalAltai" class="period-modal">
+  <div class="modal-bg-wrapper">
+    <img src="https://raw.githubusercontent.com/ekrss04/Data-/main/visual/history.svg" 
+         alt="Фон модального окна" 
+         class="modal-bg">
+    
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3 class="modal-title">Алтайское селение</h3>
+      <div class="modal-description">
+        <p>Горно-Алтайск ведёт свою историю с 1824 года, когда было основано село Улала на месте слияния рек Улалушки и Маймы. Первыми поселенцами стали крестьяне Бийского уезда и представители коренного населения Алтая. В 1828 году в Улалу прибыла Алтайская духовная миссия, оказавшая значительное влияние на развитие поселения. С 1834 по 1879 год Улала являлась её административным и духовным центром. В этот период были построены храмы, часовни и Никольский женский монастырь. В 1838 году открылась первая миссионерская школа, положившая начало развитию системы образования.  В 1867 году было создано Миссионерское центральное училище.Население Улалы формировалось преимущественно из новокрещёных алтайцев, получавших государственную поддержку. В поселении была открыта первая больница, обеспечивавшая медицинскую помощь и социальную защиту. В совокупности эти процессы заложили основы социально-культурного и административного развития будущего города.</p>
+      </div>
+      
+      <div class="images-grid">
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/1.1.jpg?raw=true" 
+               alt="Мужская и женская церковно-приходские школы" 
+               class="modal-image"
+               data-photo="1.1.jpg">
+          <div class="image-caption">Мужская и женская церковно-приходские школы</div>
+        </div>
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/1.2.jpg?raw=true" 
+               alt="Мужская церковно-приходская школа" 
+               class="modal-image"
+               data-photo="1.2.jpg">
+          <div class="image-caption">Мужская церковно-приходская школа</div>
+        </div>
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/1.3.jpg?raw=true" 
+               alt="с. Улала в начале XX века" 
+               class="modal-image"
+               data-photo="1.3.jpg">
+          <div class="image-caption">с. Улала в начале XX века</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modalMerchant" class="period-modal">
+  <div class="modal-bg-wrapper">
+    <img src="https://raw.githubusercontent.com/ekrss04/Data-/main/visual/history.svg" 
+         alt="Фон модального окна" 
+         class="modal-bg">
+    
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3 class="modal-title">Купеческий период</h3>
+      <div class="modal-description">
+        <p>Во второй половине XIX — начале XX века село Улала, ныне город Горно-Алтайск, переживало период активного экономического и культурного развития благодаря купечеству. В это время здесь строились каменные дома, торговые лавки, склады и мастерские. Известные купцы Тобоковы, Бодуновы, Хакин, Юрганов и другие вносили большой вклад в развитие торговли и ремесел. Улала стала важным торговым центром, связывавшим Алтай с Монголией, Китаем и другими регионами Сибири. В селе действовали десятки ремесленных цехов по обработке металла, ткани, глины и кожи. Регулярно проводились ярмарки, на которые съезжались торговцы из разных мест. Купцы активно занимались благотворительностью, жертвуя средства на строительство храмов, школ и общественных зданий. Большое значение имело открытие телеграфной линии, связавшей Улалу с внешним миром. Некоторые здания сохранились до наших дней и являются памятниками истории.</p>
+      </div>
+      
+      <div class="images-grid">
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/2.1.jpg?raw=true" 
+               alt="Винная лавка купца Тобокова" 
+               class="modal-image"
+               data-photo="2.1.jpg">
+          <div class="image-caption">Винная лавка купца Тобокова</div>
+        </div>
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/2.2.jpg?raw=true" 
+               alt="Дом купца Бодунова" 
+               class="modal-image"
+               data-photo="2.2.jpg">
+          <div class="image-caption">Дом купца Бодунова</div>
+        </div>
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/2.3.jpg?raw=true" 
+               alt="Лавка купца Хакина" 
+               class="modal-image"
+               data-photo="2.3.jpg">
+          <div class="image-caption">Лавка купца Хакина</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modalSoviet" class="period-modal">
+  <div class="modal-bg-wrapper">
+    <img src="https://raw.githubusercontent.com/ekrss04/Data-/main/visual/history.svg" 
+         alt="Фон модального окна" 
+         class="modal-bg">
+    
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3 class="modal-title">Советский период</h3>
+      <div class="modal-description">
+        <p>После Октябрьской революции 1917 года в Горном Алтае происходили сложные политические процессы, завершившиеся установлением советской власти при поддержке алтайских партизанских отрядов. В 1922 году село Улала стало административным центром Ойротской автономной области. В 1928 году Улала получила статус города, а в 1932 году была переименована в Ойрот-Туру. В 1948 году город получил современное название — Горно-Алтайск. В 1920–1930-е годы активно проводилась политика ликвидации неграмотности, создавались библиотеки, школы, техникумы и медицинские учреждения. В этот же период был основан Ойротский краеведческий музей, ныне музей имени Анохина. В годы Великой Отечественной войны город стал важным пунктом размещения эвакуированного населения, а его предприятия были переориентированы на выпуск продукции для фронта. В послевоенные десятилетия Горно-Алтайск пережил интенсивный промышленный и жилищный рост. Были построены заводы, фабрики, новые жилые кварталы и объекты социальной инфраструктуры.  </p>
+      </div>
+      
+      <div class="images-grid">
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/3.1.jpg?raw=true" 
+               alt="Кинотеатр Голубой Алтай" 
+               class="modal-image"
+               data-photo="3.1.jpg">
+          <div class="image-caption">Кинотеатр Голубой Алтай</div>
+        </div>
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/3.2.jpg?raw=true" 
+               alt="Дом Культуры" 
+               class="modal-image"
+               data-photo="3.2.jpg">
+          <div class="image-caption">Дом Культуры</div>
+        </div>
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/3.3.jpg?raw=true" 
+               alt="Кинотеатр имени М. Горького" 
+               class="modal-image"
+               data-photo="3.3.jpg">
+          <div class="image-caption">Кинотеатр имени М. Горького</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modalModern" class="period-modal">
+  <div class="modal-bg-wrapper">
+    <img src="https://raw.githubusercontent.com/ekrss04/Data-/main/visual/history.svg" 
+         alt="Фон модального окна" 
+         class="modal-bg">
+    
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h3 class="modal-title">Современный город</h3>
+      <div class="modal-description">
+        <p>В 1992 году Горно-Алтайск получил статус столицы Республики Алтай. В 1990-е годы город столкнулся с кризисом, связанным с закрытием промышленных предприятий, однако в дальнейшем начался постепенный рост. В настоящее время Горно-Алтайск является административным, культурным, образовательным и туристическим центром региона. Экономика города основана на сфере услуг, торговле, строительстве, переработке древесины и пищевой продукции, а также на развитии туризма. Город выполняет функции важного транспортно-логистического узла, обеспечивая связь с регионами Сибири.  Численность населения составляет около 64 тысяч человек и характеризуется устойчивым ростом. Этнический состав многообразен, что способствует формированию поликультурного пространства. Горно-Алтайск отличается благоприятной экологической обстановкой и высоким уровнем озеленения. Современный этап характеризуется комплексным развитием городской инфраструктуры и повышением качества жизни населения.</p>
+      </div>
+      
+      <div class="images-grid">
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/4.1.jpg?raw=true" 
+               alt="Национальный драматический театр имени П.В. Кучияка" 
+               class="modal-image"
+               data-photo="4.1.jpg">
+          <div class="image-caption">Национальный драматический театр имени П.В. Кучияка</div>
+        </div>
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/4.2.jpg?raw=true" 
+               alt="Национальный музей имени А. В. Анохина" 
+               class="modal-image"
+               data-photo="4.2.jpg">
+          <div class="image-caption">Национальный музей имени А. В. Анохина</div>
+        </div>
+        <div class="image-item">
+          <img src="https://github.com/ekrss04/Data-/blob/main/visual/photo/4.3.jpg?raw=true" 
+               alt="Прокуратура Республики Алтай" 
+               class="modal-image"
+               data-photo="4.3.jpg">
+          <div class="image-caption">Прокуратура Республики Алтай</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <script src='https://cdn.jsdelivr.net/npm/cesium@1.115.0/Build/Cesium/Cesium.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/cesium@1.115.0/Build/Cesium/Widgets/widgets.js'></script><script  src="./script.js"></script>
+
+  </body>
+  
+</html>

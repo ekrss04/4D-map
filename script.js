@@ -24,7 +24,7 @@ window.onload = function () {
     viewer.animation.container.style.display = "none";
   }
 
-  // --- Настройка анимации ---
+  // --- Настройка анимация ---
   viewer.clock.shouldAnimate = false;
   viewer.clock.multiplier = 1;
 
@@ -175,7 +175,7 @@ window.onload = function () {
   setTimeout(() => viewer.timeline.zoomTo(viewer.clock.startTime, viewer.clock.stopTime), 300);
 
   // --- GeoJSON ---
-  const geojsonUrl = "https://cdn.jsdelivr.net/gh/ekrss04/Data-/Buildings1.geojson";
+  const geojsonUrl = "https://cdn.jsdelivr.net/gh/ekrss04/Data-/Buildings.geojson";
   Cesium.GeoJsonDataSource.load(geojsonUrl, { clampToGround: false })
     .then(dataSource => {
       viewer.dataSources.add(dataSource);
@@ -437,8 +437,12 @@ window.onload = function () {
       const year = parseInt(btn.dataset.year);
       if (year === activeYear) {
         btn.classList.add('active');
+        btn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        btn.style.boxShadow = '0 0 10px rgba(255, 255, 255, 0.3)';
       } else {
         btn.classList.remove('active');
+        btn.style.backgroundColor = 'transparent';
+        btn.style.boxShadow = 'none';
       }
     });
   }
@@ -449,6 +453,26 @@ window.onload = function () {
     buttons.forEach(btn => {
       const year = parseInt(btn.dataset.year);
       
+      // Делаем кнопки видимыми
+      btn.style.opacity = '0.3';
+      btn.style.transition = 'all 0.3s ease';
+      btn.style.cursor = 'pointer';
+      
+      // Эффекты при наведении
+      btn.addEventListener('mouseenter', () => {
+        btn.style.opacity = '0.5';
+        btn.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+        btn.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.2)';
+      });
+      
+      btn.addEventListener('mouseleave', () => {
+        if (!btn.classList.contains('active')) {
+          btn.style.opacity = '0.3';
+          btn.style.backgroundColor = 'transparent';
+          btn.style.boxShadow = 'none';
+        }
+      });
+      
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         goToYear(year);
@@ -458,99 +482,41 @@ window.onload = function () {
     updatePeriodButtons(currentPeriod);
   }
 
+  // ========== ПРОСТАЯ ФУНКЦИЯ УВЕЛИЧЕНИЯ ФОТО БЕЗ ФОНА ==========
+  function enlargePhoto(src, alt) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 3000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    `;
+    
+    const enlargedImg = document.createElement('img');
+    enlargedImg.src = src;
+    enlargedImg.alt = alt;
+    enlargedImg.style.cssText = `
+      max-width: 90%;
+      max-height: 90%;
+      object-fit: contain;
+    `;
+    
+    overlay.appendChild(enlargedImg);
+    document.body.appendChild(overlay);
+    
+    overlay.addEventListener('click', () => {
+      document.body.removeChild(overlay);
+    });
+  }
+
   // ========== ВСПЛЫВАЮЩИЕ ОКНА ПЕРИОДОВ ==========
   let currentModal = null;
-
-  // Карта соответствия фото -> координатам моделей (с поворотом и наклоном)
-  const photoToModelMap = {
-    "1.1.jpg": { 
-      lat: 51.9577677, 
-      lon: 85.9643593, 
-      zoom: 1000,
-      heading: 0,
-      pitch: -30
-    },
-    "1.2.jpg": { 
-      lat: 51.9577677, 
-      lon: 85.9643593, 
-      zoom: 1000,
-      heading: 90,
-      pitch: -25
-    },
-    "1.3.jpg": { 
-      lat: 51.9577677, 
-      lon: 85.9643593, 
-      zoom: 1000,
-      heading: -90,
-      pitch: -35
-    },
-    
-    "2.1.jpg": { 
-      lat: 51.9577677, 
-      lon: 85.9643593, 
-      zoom: 1000,
-      heading: 45,
-      pitch: -30
-    },
-    "2.2.jpg": { 
-      lat: 51.9577677, 
-      lon: 85.9643593, 
-      zoom: 1000,
-      heading: -45,
-      pitch: -25
-    },
-    "2.3.jpg": { 
-      lat: 51.9577677, 
-      lon: 85.9643593, 
-      zoom: 1000,
-      heading: 180,
-      pitch: -35
-    },
-    
-    "3.1.jpg": { 
-      lat: 51.9519572, 
-      lon: 85.9592352, 
-      zoom: 800,
-      heading: 0,
-      pitch: -30
-    },
-    "3.2.jpg": { 
-      lat: 51.9527243, 
-      lon: 85.961289, 
-      zoom: 800,
-      heading: 60,
-      pitch: -25
-    },
-    "3.3.jpg": { 
-      lat: 51.9519572, 
-      lon: 85.9592352, 
-      zoom: 800,
-      heading: 120,
-      pitch: -35
-    },
-    
-    "4.1.jpg": { 
-      lat: 51.9592017, 
-      lon: 85.9602147, 
-      zoom: 800,
-      heading: 0,
-      pitch: -30
-    },
-    "4.2.jpg": { 
-      lat: 51.9577677, 
-      lon: 85.9643593, 
-      zoom: 1000,
-      heading: 45,
-      pitch: -30
-    },
-    "4.3.jpg": { 
-      lat: 51.9567825, 
-      lon: 85.9592711, 
-      zoom: 60,
-      heading: 45,
-      pitch: -15
-    }
-  };
 
   // Функция для открытия модального окна
   function openModal(modalId) {
@@ -578,26 +544,6 @@ window.onload = function () {
     if (currentModal) {
       currentModal.style.display = 'none';
       currentModal = null;
-    }
-  }
-
-  // Функция для перелета к модели по фото (с поворотом и наклоном)
-  function flyToModel(photoName) {
-    const modelData = photoToModelMap[photoName];
-    if (modelData) {
-      // Закрываем модальное окно
-      closeModal();
-      
-      // Перелетаем к модели с заданным поворотом и наклоном
-      viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(modelData.lon, modelData.lat, modelData.zoom),
-        orientation: {
-          heading: Cesium.Math.toRadians(modelData.heading || 0),
-          pitch: Cesium.Math.toRadians(modelData.pitch || -30),
-          roll: 0.0
-        },
-        duration: 2.0
-      });
     }
   }
 
@@ -648,62 +594,18 @@ window.onload = function () {
     const modals = document.querySelectorAll('.period-modal');
     modals.forEach(modal => {
       modal.addEventListener('click', (e) => {
-        // Проверяем, что клик был именно на фоне модального окна, а не на контенте
         if (e.target === modal) {
           closeModal();
         }
       });
     });
     
-    // Обработчики для фото в модальных окнах периодов - при клике перелетаем к модели
+    // Простая функция увеличения фото при клике
     const modalImages = document.querySelectorAll('.period-modal .modal-image');
     modalImages.forEach(img => {
       img.addEventListener('click', (e) => {
         e.stopPropagation();
-        
-        const fileName = img.dataset.photo;
-        if (fileName) {
-          flyToModel(fileName);
-        } else {
-          // Альтернативный вариант - увеличить изображение
-          const src = img.src;
-          const alt = img.alt;
-          
-          // Создаем модальное окно для увеличенного изображения
-          const overlay = document.createElement('div');
-          overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 3000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-          `;
-          
-          const enlargedImg = document.createElement('img');
-          enlargedImg.src = src;
-          enlargedImg.alt = alt;
-          enlargedImg.style.cssText = `
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-          `;
-          
-          overlay.appendChild(enlargedImg);
-          document.body.appendChild(overlay);
-          
-          // Закрытие при клике
-          overlay.addEventListener('click', () => {
-            document.body.removeChild(overlay);
-          });
-        }
+        enlargePhoto(img.src, img.alt);
       });
     });
   }
@@ -825,39 +727,8 @@ window.onload = function () {
         const src = modelImage.src;
         const alt = modelImage.alt;
         
-        if (src) {
-          const overlay = document.createElement('div');
-          overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 3000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-          `;
-          
-          const enlargedImg = document.createElement('img');
-          enlargedImg.src = src;
-          enlargedImg.alt = alt;
-          enlargedImg.style.cssText = `
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-          `;
-          
-          overlay.appendChild(enlargedImg);
-          document.body.appendChild(overlay);
-          
-          overlay.addEventListener('click', () => {
-            document.body.removeChild(overlay);
-          });
+        if (src && src !== '') {
+          enlargePhoto(src, alt);
         }
       });
     }

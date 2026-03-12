@@ -31,16 +31,21 @@ window.onload = function () {
   // --- Удаляем стандартные слои ---
   viewer.imageryLayers.removeAll();
 
-  // Цвета для слоев карты
-  const waterColor = Cesium.Color.fromCssColorString('#b1e9ff');
+  // --- Цвета для слоев карты ---
+  const waterColor = Cesium.Color.fromCssColorString('#3794cc'); // Новый цвет гидрографии
   const vegetationColor = Cesium.Color.fromCssColorString('#c5e6d1').withAlpha(0.4);
   const roadColor = Cesium.Color.fromCssColorString('#898989');
+  
+  // Цвета для границы
+  const borderFillColor = Cesium.Color.fromCssColorString('#ffffff').withAlpha(0.9);
+  const borderStrokeColor = Cesium.Color.fromCssColorString('#b3526c'); // Новый цвет красной границы
 
   function clearMapLayers() {
     const dataSources = viewer.dataSources;
     for (let i = dataSources.length - 1; i >= 0; i--) {
       const ds = dataSources.get(i);
-      if (ds.name && (ds.name.includes('Растительность') || 
+      if (ds.name && (ds.name.includes('Граница') ||
+                      ds.name.includes('Растительность') || 
                       ds.name.includes('Гидрография') || 
                       ds.name.includes('Дороги'))) {
         dataSources.remove(ds);
@@ -51,6 +56,21 @@ window.onload = function () {
   function loadMapFoundation() {
     clearMapLayers();
 
+    // --- 0.1 ГРАНИЦА (ПОЛИГОН) - ПОЛУПРОЗРАЧНАЯ белая заливка ---
+    Cesium.GeoJsonDataSource.load(
+      'https://raw.githubusercontent.com/ekrss04/Data-/main/Granica.geojson',
+      {
+        stroke: Cesium.Color.fromCssColorString('#ffffff').withAlpha(0), // Прозрачная обводка
+        strokeWidth: 0,
+        fill: borderFillColor, // Теперь с прозрачностью 0.5
+        clampToGround: true
+      }
+    ).then(dataSource => {
+      dataSource.name = 'Граница (полигон)';
+      viewer.dataSources.add(dataSource);
+    }).catch(() => {});
+
+    // --- 1. Растительность (поверх белой заливки) ---
     Cesium.GeoJsonDataSource.load(
       'https://raw.githubusercontent.com/ekrss04/Data-/main/Rastitelnost.geojson',
       { 
@@ -64,6 +84,7 @@ window.onload = function () {
       viewer.dataSources.add(dataSource);
     }).catch(() => {});
 
+    // --- 2. Гидрография площадная ---
     Cesium.GeoJsonDataSource.load(
       'https://raw.githubusercontent.com/ekrss04/Data-/main/Gidrigraf.geojson',
       { 
@@ -77,6 +98,7 @@ window.onload = function () {
       viewer.dataSources.add(dataSource);
     }).catch(() => {});
 
+    // --- 3. Гидрография линейная ---
     Cesium.GeoJsonDataSource.load(
       'https://raw.githubusercontent.com/ekrss04/Data-/main/Gidrigraf_2.geojson',
       { 
@@ -89,6 +111,7 @@ window.onload = function () {
       viewer.dataSources.add(dataSource);
     }).catch(() => {});
 
+    // --- 4. Дороги ---
     Cesium.GeoJsonDataSource.load(
       'https://raw.githubusercontent.com/ekrss04/Data-/main/Dorogi.geojson',
       { 
@@ -100,40 +123,68 @@ window.onload = function () {
       dataSource.name = 'Дороги';
       viewer.dataSources.add(dataSource);
     }).catch(() => {});
-  }
+
+    // --- 5. ГРАНИЦА (ЛИНЕЙНАЯ) - красная линия (самый верхний) ---
+    Cesium.GeoJsonDataSource.load(
+      'https://raw.githubusercontent.com/ekrss04/Data-/main/Gran.geojson',
+      {
+        stroke: borderStrokeColor,
+        strokeWidth: 4,
+        fill: Cesium.Color.fromCssColorString('rgba(255,255,255,0)'),
+        clampToGround: true,
+        markerSize: 0
+      }
+    ).then(dataSource => {
+      dataSource.name = 'Граница (линия)';
+      viewer.dataSources.add(dataSource);
+    }).catch(() => {});
+}
+
+  // --- 5 КАРТОГРАФИЧЕСКИХ ОСНОВ ---
+  const positronProvider = new Cesium.UrlTemplateImageryProvider({
+    url: "https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
+  });
+
+  const googleSatelliteProvider = new Cesium.UrlTemplateImageryProvider({
+    url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+  });
 
   const layers = [
     {
-      name: "Carto Positron (с подписями)",
-      provider: new Cesium.UrlTemplateImageryProvider({
-        url: "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-      })
+      name: "Картографическая основа",
+      provider: positronProvider,
+      onSelect: loadMapFoundation
+    },
+    {
+      name: "Positron",
+      provider: positronProvider,
+      onSelect: function() {}
     },
     {
       name: "OSM",
       provider: new Cesium.OpenStreetMapImageryProvider({
         url: "https://a.tile.openstreetmap.org/"
-      })
+      }),
+      onSelect: function() {}
     },
     {
-      name: "Carto Dark Matter",
+      name: "Dark Matter",
       provider: new Cesium.UrlTemplateImageryProvider({
         url: "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
-      })
+      }),
+      onSelect: function() {}
     },
     {
-      name: "Картографическая основа",
-      provider: new Cesium.UrlTemplateImageryProvider({
-        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Hillshade/MapServer/tile/{z}/{y}/{x}",
-        subdomains: ['server', 'services']
-      }),
-      onSelect: loadMapFoundation
+      name: "Google Спутник",
+      provider: googleSatelliteProvider,
+      onSelect: function() {}
     }
   ];
 
   let currentLayerIndex = 0;
   viewer.imageryLayers.addImageryProvider(layers[currentLayerIndex].provider);
 
+  // --- Меню слоев ---
   const layersMenu = document.createElement("div");
   layersMenu.id = "layersMenu";
   layersMenu.style.cssText = `
@@ -175,9 +226,7 @@ window.onload = function () {
     };
 
     item.onclick = () => {
-      if (layers[currentLayerIndex].name === "Картографическая основа") {
-        clearMapLayers();
-      }
+      clearMapLayers();
       
       viewer.imageryLayers.removeAll();
       viewer.imageryLayers.addImageryProvider(layers[index].provider);
@@ -227,16 +276,26 @@ window.onload = function () {
     commandInfo.cancel = true;
   });
 
-  // --- Таймлайн ---
-  viewer.clock.startTime = Cesium.JulianDate.fromIso8601("1834-01-01T00:00:00Z");
-  viewer.clock.stopTime = Cesium.JulianDate.fromIso8601("2027-01-01T00:00:00Z");
+  // --- Таймлайн и анимация ---
+  const startTime = Cesium.JulianDate.fromIso8601("1834-01-01T00:00:00Z");
+  const stopTime = Cesium.JulianDate.fromIso8601("2027-01-01T00:00:00Z");
+  
+  viewer.clock.startTime = startTime.clone();
+  viewer.clock.stopTime = stopTime.clone();
   viewer.clock.currentTime = Cesium.JulianDate.now();
-  viewer.clock.multiplier = 1;
+  viewer.clock.multiplier = 1000000;
   viewer.clock.shouldAnimate = false;
-  viewer.timeline.makeLabel = time => Cesium.JulianDate.toDate(time).getUTCFullYear().toString();
-  setTimeout(() => viewer.timeline.zoomTo(viewer.clock.startTime, viewer.clock.stopTime), 300);
+  viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER;
+  
+  viewer.timeline.makeLabel = function(time) {
+    return Cesium.JulianDate.toDate(time).getUTCFullYear().toString();
+  };
+  
+  setTimeout(() => {
+    viewer.timeline.zoomTo(startTime, stopTime);
+  }, 300);
 
-  // --- Здания ---
+  // --- Здания с анимацией по году постройки ---
   Cesium.GeoJsonDataSource.load(
     'https://cdn.jsdelivr.net/gh/ekrss04/Data-/Buildings.geojson',
     { clampToGround: false }
@@ -245,20 +304,42 @@ window.onload = function () {
     viewer.dataSources.add(dataSource);
     const entities = dataSource.entities.values;
     const now = Cesium.JulianDate.now();
+
     entities.forEach(entity => {
       if (!entity.polygon || !entity.properties) return;
       const props = entity.properties.getValue(now);
       let height = parseFloat(props["Высота здания"]) || 10;
+      const yearStr = props["Год постройки"];
+      
+      // Настройки полигона
       entity.polygon.height = 0;
       entity.polygon.extrudedHeight = height;
       entity.polygon.outline = false;
       const color = props["Color"] || "#ffffff";
-      entity.polygon.material = Cesium.Color.fromCssColorString(color).withAlpha(0.95);
-      entity.description = `<b>${props["Здание"] || "Здание"}</b><br>Высота: ${height} м<br>Адрес: ${props["Адрес"] || ""}<br>Год: ${props["Год постройки"] || ""}`;
+      
+      entity.originalColor = Cesium.Color.fromCssColorString(color).withAlpha(0.95);
+      entity.polygon.material = entity.originalColor;
+      
+      // Добавляем временной интервал на основе года постройки
+      if (yearStr && !isNaN(parseInt(yearStr))) {
+        const year = parseInt(yearStr);
+        const startDate = Cesium.JulianDate.fromIso8601(`${year}-01-01T00:00:00Z`);
+        
+        entity.availability = new Cesium.TimeIntervalCollection([
+          new Cesium.TimeInterval({
+            start: startDate,
+            stop: stopTime.clone()
+          })
+        ]);
+      }
+      
+      entity.description = `<b>${props["Здание"] || "Здание"}</b><br>Высота: ${height} м<br>Адрес: ${props["Адрес"] || ""}<br>Год постройки: ${yearStr || "не указан"}`;
     });
+    
+    console.log("Здания загружены с временными интервалами");
   }).catch(() => {});
 
-  // --- 3D модели ---
+  // --- 3D модели с временными интервалами ---
   function addModel(name, url, lon, lat, rot, scale, year) {
     const pos = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
     const orient = Cesium.Transforms.headingPitchRollQuaternion(pos, new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(rot), 0, 0));
@@ -340,25 +421,52 @@ window.onload = function () {
     }, 10);
   };
 
-  // --- Плеер ---
+  // --- Плеер (анимация) ---
   let isPlaying = false;
 
-  function pauseAnimation() { viewer.clock.shouldAnimate = false; isPlaying = false; updatePlayerButtons('pause'); }
+  function pauseAnimation() { 
+    viewer.clock.shouldAnimate = false; 
+    isPlaying = false; 
+    updatePlayerButtons('pause'); 
+  }
+  
   function playSlowAnimation() { 
-    if (Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) viewer.clock.currentTime = viewer.clock.startTime;
-    viewer.clock.multiplier = 1000000; viewer.clock.shouldAnimate = true; isPlaying = true; updatePlayerButtons('play'); 
+    if (Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) {
+      viewer.clock.currentTime = startTime.clone();
+    }
+    viewer.clock.multiplier = 1000000; 
+    viewer.clock.shouldAnimate = true; 
+    isPlaying = true; 
+    updatePlayerButtons('play'); 
   }
+  
   function playFastAnimation() { 
-    if (Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) viewer.clock.currentTime = viewer.clock.startTime;
-    viewer.clock.multiplier = 100000000; viewer.clock.shouldAnimate = true; isPlaying = true; updatePlayerButtons('fast'); 
+    if (Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) {
+      viewer.clock.currentTime = startTime.clone();
+    }
+    viewer.clock.multiplier = 100000000; 
+    viewer.clock.shouldAnimate = true; 
+    isPlaying = true; 
+    updatePlayerButtons('fast'); 
   }
-  function goToToday() { viewer.clock.shouldAnimate = false; viewer.clock.currentTime = Cesium.JulianDate.now(); viewer.timeline.updateFromClock(); isPlaying = false; updatePlayerButtons('pause'); }
+  
+  function goToToday() { 
+    viewer.clock.shouldAnimate = false; 
+    viewer.clock.currentTime = Cesium.JulianDate.now(); 
+    viewer.timeline.updateFromClock(); 
+    isPlaying = false; 
+    updatePlayerButtons('pause'); 
+  }
+  
   function updatePlayerButtons(activeBtn) {
     document.querySelectorAll('.player-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector(`.player-btn.${activeBtn}`)?.classList.add('active');
   }
+  
   function checkAnimationReset() {
-    if (isPlaying && Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) viewer.clock.currentTime = viewer.clock.startTime;
+    if (isPlaying && Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) {
+      viewer.clock.currentTime = startTime.clone();
+    }
   }
 
   document.querySelectorAll('.player-btn').forEach(btn => {
@@ -370,6 +478,7 @@ window.onload = function () {
       else if (action === 'end') goToToday();
     };
   });
+  
   updatePlayerButtons('pause');
   setInterval(checkAnimationReset, 1000);
 
@@ -418,8 +527,9 @@ window.onload = function () {
   // --- Попапы для объектов ---
   let currentPopup = null;
   
-  function openBuildingPopup(title, desc) { 
-    if (currentPopup) currentPopup.style.display = 'none'; 
+  function openBuildingPopup(title, desc) {
+    closeAllPopups();
+    
     const p = document.getElementById('buildingPopup'); 
     if (p) {
       document.getElementById('buildingTitle').textContent = title; 
@@ -430,9 +540,8 @@ window.onload = function () {
   }
   
   function openModelPopup(name) {
-    if (currentPopup) currentPopup.style.display = 'none';
+    closeAllPopups();
     
-    // Данные для моделей с ПРАВИЛЬНЫМИ ссылками на GitHub
     const data = {
       'Дом культуры': { 
         desc: 'Городской дом культуры г. Горно-Алтайска открыт в 1950 году на базе ликвидированного национального театра для колхозников. Дом культуры выступает как центр праздничной жизни города, где проводятся концертные программы, народные гуляния, митинги и юбилеи.', 
@@ -456,7 +565,7 @@ window.onload = function () {
       },
       'Лавка купца Тобокова': { 
         desc: 'Лавка купца Д. М. Тобокова построена в 1887 году. Здание использовалось Даниилом Михайловичем в качестве винной лавки. В 1920-е годы здесь располагался Союз охотников. С 1926 по 1931 годы здание принадлежало Ойротскому краеведческому музею, затем передано в распоряжение Горно-Алтайской конторы государственной торговли (Горно-Алтайторг). 1989 году объект получил охранный статус и стал объектом культурного наследия регионального значения.', 
-        img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Лавка_Тобокова.jpg?raw=true' 
+        img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Лавка%20Тобокова.jpg?raw=true' 
       }
     };
     
@@ -465,8 +574,17 @@ window.onload = function () {
       if (p) {
         document.getElementById('modelTitle').textContent = name;
         document.getElementById('modelDescription').textContent = data[name].desc;
-        document.getElementById('modelImage').src = data[name].img;
-        document.getElementById('modelImage').alt = name;
+        
+        // --- УНИФИЦИРОВАННЫЙ РАЗМЕР ФОТО ---
+        const img = document.getElementById('modelImage');
+        img.src = data[name].img;
+        img.alt = name;
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '180px'; // Фиксируем максимальную высоту как у фото в периодах
+        img.style.width = 'auto';
+        img.style.height = 'auto';
+        img.style.objectFit = 'contain';
+        
         p.style.display = 'block'; 
         currentPopup = p;
       }
@@ -475,9 +593,10 @@ window.onload = function () {
   
   function closeAllPopups() { 
     document.querySelectorAll('.popup-container').forEach(p => p.style.display = 'none'); 
-    currentPopup = null; 
+    currentPopup = null;
   }
 
+  // Обработчик кликов
   viewer.screenSpaceEventHandler.setInputAction(function(m) {
     const o = viewer.scene.pick(m.position);
     if (o?.id) {
@@ -485,11 +604,29 @@ window.onload = function () {
         const d = o.id.description.getValue(viewer.clock.currentTime);
         const n = o.id.properties?.getValue(viewer.clock.currentTime)["Здание"] || "Здание";
         openBuildingPopup(n, d);
-      } else if (o.id.model && o.id.name) openModelPopup(o.id.name);
+      } else if (o.id.model && o.id.name) {
+        openModelPopup(o.id.name);
+      }
+    } else {
+      closeAllPopups();
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  document.querySelectorAll('.popup-close').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); closeAllPopups(); }));
-  document.querySelectorAll('.popup-container').forEach(p => p.addEventListener('click', (e) => { if (e.target === p) closeAllPopups(); }));
+  // Закрытие по Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeAllPopups();
+      closeModal();
+    }
+  });
+
+  document.querySelectorAll('.popup-close').forEach(b => b.addEventListener('click', (e) => { 
+    e.stopPropagation(); 
+    closeAllPopups(); 
+  }));
+  
+  document.querySelectorAll('.popup-container').forEach(p => p.addEventListener('click', (e) => { 
+    if (e.target === p) closeAllPopups();
+  }));
   document.getElementById('modelImage')?.addEventListener('click', (e) => { e.stopPropagation(); enlargePhoto(e.target.src, e.target.alt); });
 };

@@ -219,7 +219,7 @@ html, body {
   top: 10px;
   left: 10px;
   width: 620px;
-  height: 500px;
+  height: 550px;
   /* УМЕНЬШЕНО с 600px до 550px */
   z-index: 2000;
 }
@@ -405,7 +405,7 @@ html, body {
 
 .model-modal {
   width: 580px;
-  height: 600px;
+  height: 650px;
   /* УМЕНЬШЕНО с 700px до 650px */
 }
 
@@ -422,7 +422,7 @@ html, body {
   top: 50px;
   right: 20px;
   width: 350px;
-  height: 350px;
+  height: 300px;
   /* УМЕНЬШЕНО с 350px до 300px */
 }
 
@@ -464,7 +464,7 @@ html, body {
   top: 70px;
   right: 20px;
   width: 400px;
-  height: 500px;
+  height: 550px;
   /* УМЕНЬШЕНО с 600px до 550px */
 }
 

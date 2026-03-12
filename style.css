@@ -461,10 +461,10 @@ html, body {
 
 /* ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ МОДЕЛЕЙ - только уменьшена высота */
 .model-popup {
-  top: 70px;
+  top: 64px;
   right: 20px;
   width: 430px;
-  height: 580px;
+  height: 560px;
   /* УМЕНЬШЕНО с 600px до 550px */
 }
 

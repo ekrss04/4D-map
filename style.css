@@ -212,13 +212,15 @@ html, body {
   font-weight: normal;
   font-style: normal;
 }
+/* МОДАЛЬНЫЕ ОКНА ПЕРИОДОВ - только уменьшена высота */
 .period-modal {
   display: none;
   position: fixed;
   top: 10px;
   left: 10px;
   width: 620px;
-  height: 600px;
+  height: 500px;
+  /* УМЕНЬШЕНО с 600px до 550px */
   z-index: 2000;
 }
 
@@ -362,6 +364,7 @@ html, body {
   -webkit-box-orient: vertical;
 }
 
+/* СТИЛИ ДЛЯ МОДАЛЬНЫХ ОКОН МОДЕЛЕЙ - только уменьшена высота */
 .model-modal .modal-content {
   padding: 30px 40px 25px 40px;
 }
@@ -402,10 +405,11 @@ html, body {
 
 .model-modal {
   width: 580px;
-  height: 700px;
+  height: 600px;
+  /* УМЕНЬШЕНО с 700px до 650px */
 }
 
-/* Всплывающие окна для зданий и моделей */
+/* ВСПЛЫВАЮЩИЕ ОКНА ДЛЯ ЗДАНИЙ И МОДЕЛЕЙ */
 .popup-container {
   display: none;
   position: absolute;
@@ -413,13 +417,13 @@ html, body {
   font-family: "Noah", Arial, sans-serif;
 }
 
-/* ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ ЗДАНИЙ (building-popup) */
+/* ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ ЗДАНИЙ - только уменьшена высота */
 .building-popup {
   top: 50px;
-  /* ПОДНЯЛИ ВЫШЕ - было 100px */
   right: 20px;
   width: 350px;
   height: 350px;
+  /* УМЕНЬШЕНО с 350px до 300px */
 }
 
 .building-popup .popup-bg-wrapper {
@@ -439,7 +443,6 @@ html, body {
 
 .building-popup .popup-content {
   position: absolute;
-  /* ИЗМЕНИЛИ с relative на absolute */
   top: 0;
   left: 0;
   right: 0;
@@ -450,23 +453,19 @@ html, body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  /* Важно для правильного расчета размеров */
 }
 
-/* Текст теперь будет на фоне, а не выше него */
 .building-popup .popup-content::before {
   display: none;
-  /* Убираем любой возможный псевдоэлемент */
 }
 
-/* ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ МОДЕЛЕЙ (model-popup) */
+/* ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ МОДЕЛЕЙ - только уменьшена высота */
 .model-popup {
   top: 70px;
   right: 20px;
   width: 400px;
-  /* УВЕЛИЧИЛИ ШИРИНУ */
-  height: 600px;
-  /* УВЕЛИЧИЛИ ВЫСОТУ для полного влезания */
+  height: 500px;
+  /* УМЕНЬШЕНО с 600px до 550px */
 }
 
 .model-popup .popup-bg-wrapper {
@@ -486,20 +485,17 @@ html, body {
 
 .model-popup .popup-content {
   position: absolute;
-  /* ИЗМЕНИЛИ с relative на absolute */
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   z-index: 2;
   padding: 35px 30px;
-  /* УВЕЛИЧИЛИ ПАДДИНГИ */
   color: white;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   overflow: hidden;
-  /* УБИРАЕМ ПРОКРУТКУ */
 }
 
 .model-popup .popup-content::before {
@@ -539,9 +535,7 @@ html, body {
   font-weight: bold;
   text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
   padding-right: 30px;
-  /* Для места под крестик */
   flex-shrink: 0;
-  /* Не сжимается при недостатке места */
 }
 
 .popup-description {
@@ -551,9 +545,7 @@ html, body {
   color: #fff;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   flex: 1;
-  /* Занимает всё доступное пространство */
   overflow: hidden;
-  /* Убираем прокрутку */
 }
 
 /* Для моделей делаем описание без прокрутки */
@@ -585,19 +577,16 @@ html, body {
 
 .popup-image-container {
   margin-top: auto;
-  /* Прижимаем картинку к низу */
   text-align: center;
   flex-shrink: 0;
-  /* Не сжимается */
 }
 
-/* Картинка для моделей - больше */
+/* Картинка для моделей - размеры не меняем */
 .model-popup .popup-image {
   width: 100%;
   max-width: 300px;
   height: auto;
   max-height: 210px;
-  /* УВЕЛИЧИЛИ ВЫСОТУ */
   object-fit: cover;
   border-radius: 6px;
   border: 2px solid rgba(255, 255, 255, 0.3);

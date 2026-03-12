@@ -404,8 +404,8 @@ html, body {
 }
 
 .model-modal {
-  width: 580px;
-  height: 650px;
+  width: 600px;
+  height: 680px;
   /* УМЕНЬШЕНО с 700px до 650px */
 }
 
@@ -463,8 +463,8 @@ html, body {
 .model-popup {
   top: 70px;
   right: 20px;
-  width: 400px;
-  height: 550px;
+  width: 430px;
+  height: 580px;
   /* УМЕНЬШЕНО с 600px до 550px */
 }
 

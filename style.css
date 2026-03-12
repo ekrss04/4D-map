@@ -219,7 +219,7 @@ html, body {
   top: 10px;
   left: 10px;
   width: 620px;
-  height: 550px;
+  height: 560px;
   /* УМЕНЬШЕНО с 600px до 550px */
   z-index: 2000;
 }
@@ -462,8 +462,8 @@ html, body {
 .model-popup {
   top: 60px;
   right: 20px;
-  width: 410px;
-  height: 545px;
+  width: 400px;
+  height: 535px;
   /* УМЕНЬШЕНО с 600px до 550px */
 }
 

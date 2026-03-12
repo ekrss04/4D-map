@@ -260,11 +260,15 @@ window.onload = function () {
     }
   }
 
-  // --- Камера ---
-  viewer.camera.setView({
-    destination: Cesium.Cartesian3.fromDegrees(85.9558, 51.9547, 2000),
-    orientation: { heading: 0, pitch: Cesium.Math.toRadians(-25), roll: 0 }
-  });
+// --- Камера на Горно-Алтайск (вид сверху) ---
+viewer.camera.setView({
+  destination: Cesium.Cartesian3.fromDegrees(85.9558, 51.9547, 5000), // Высота 5000м
+  orientation: {
+    heading: 0,
+    pitch: Cesium.Math.toRadians(-90), // -90 градусов = строго вниз
+    roll: 0
+  }
+});
 
   const homeButton = viewer.homeButton.viewModel;
   homeButton.command.beforeExecute.addEventListener(function(commandInfo) {

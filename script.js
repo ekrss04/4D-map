@@ -31,28 +31,103 @@ window.onload = function () {
   // --- Удаляем стандартные слои ---
   viewer.imageryLayers.removeAll();
 
-  // Создаем слои
+  // Цвета для слоев карты
+  const waterColor = Cesium.Color.fromCssColorString('#b1e9ff');
+  const vegetationColor = Cesium.Color.fromCssColorString('#c5e6d1').withAlpha(0.4);
+  const roadColor = Cesium.Color.fromCssColorString('#898989');
+
+  function clearMapLayers() {
+    const dataSources = viewer.dataSources;
+    for (let i = dataSources.length - 1; i >= 0; i--) {
+      const ds = dataSources.get(i);
+      if (ds.name && (ds.name.includes('Растительность') || 
+                      ds.name.includes('Гидрография') || 
+                      ds.name.includes('Дороги'))) {
+        dataSources.remove(ds);
+      }
+    }
+  }
+
+  function loadMapFoundation() {
+    clearMapLayers();
+
+    Cesium.GeoJsonDataSource.load(
+      'https://raw.githubusercontent.com/ekrss04/Data-/main/Rastitelnost.geojson',
+      { 
+        stroke: vegetationColor, 
+        fill: vegetationColor, 
+        strokeWidth: 1, 
+        clampToGround: true 
+      }
+    ).then(dataSource => {
+      dataSource.name = 'Растительность';
+      viewer.dataSources.add(dataSource);
+    }).catch(() => {});
+
+    Cesium.GeoJsonDataSource.load(
+      'https://raw.githubusercontent.com/ekrss04/Data-/main/Gidrigraf.geojson',
+      { 
+        stroke: waterColor, 
+        fill: waterColor, 
+        strokeWidth: 2, 
+        clampToGround: true 
+      }
+    ).then(dataSource => {
+      dataSource.name = 'Гидрография площадная';
+      viewer.dataSources.add(dataSource);
+    }).catch(() => {});
+
+    Cesium.GeoJsonDataSource.load(
+      'https://raw.githubusercontent.com/ekrss04/Data-/main/Gidrigraf_2.geojson',
+      { 
+        stroke: waterColor, 
+        strokeWidth: 3, 
+        clampToGround: true 
+      }
+    ).then(dataSource => {
+      dataSource.name = 'Гидрография линейная';
+      viewer.dataSources.add(dataSource);
+    }).catch(() => {});
+
+    Cesium.GeoJsonDataSource.load(
+      'https://raw.githubusercontent.com/ekrss04/Data-/main/Dorogi.geojson',
+      { 
+        stroke: roadColor,
+        strokeWidth: 3,
+        clampToGround: true 
+      }
+    ).then(dataSource => {
+      dataSource.name = 'Дороги';
+      viewer.dataSources.add(dataSource);
+    }).catch(() => {});
+  }
+
   const layers = [
     {
-      name: "Carto Positron",
+      name: "Carto Positron (с подписями)",
       provider: new Cesium.UrlTemplateImageryProvider({
         url: "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"
-      }),
-      icon: "https://raw.githubusercontent.com/ekrss04/Data-/main/visual/icons_1/map-light.svg"
+      })
     },
     {
       name: "OSM",
       provider: new Cesium.OpenStreetMapImageryProvider({
         url: "https://a.tile.openstreetmap.org/"
-      }),
-      icon: "https://raw.githubusercontent.com/ekrss04/Data-/main/visual/icons_1/map-street.svg"
+      })
     },
     {
       name: "Carto Dark Matter",
       provider: new Cesium.UrlTemplateImageryProvider({
         url: "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+      })
+    },
+    {
+      name: "Картографическая основа",
+      provider: new Cesium.UrlTemplateImageryProvider({
+        url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Hillshade/MapServer/tile/{z}/{y}/{x}",
+        subdomains: ['server', 'services']
       }),
-      icon: "https://raw.githubusercontent.com/ekrss04/Data-/main/visual/icons_1/map-dark.svg"
+      onSelect: loadMapFoundation
     }
   ];
 
@@ -69,88 +144,76 @@ window.onload = function () {
     padding: 10px;
     z-index: 1001;
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    min-width: 180px;
+    min-width: 200px;
+    color: white;
+    font-family: sans-serif;
   `;
 
   layers.forEach((layer, index) => {
-    const layerOption = document.createElement("div");
-    layerOption.style.cssText = `
+    const item = document.createElement("div");
+    item.style.cssText = `
       display: flex;
       align-items: center;
       padding: 8px 12px;
       margin: 2px 0;
       border-radius: 4px;
       cursor: pointer;
-      color: white;
-      font-family: sans-serif;
-      font-size: 14px;
       transition: background 0.2s;
     `;
-    
-    layerOption.innerHTML = `
-      <div style="width: 20px; height: 20px; margin-right: 10px; 
-                  background-image: url(${layer.icon});
-                  background-size: contain; background-repeat: no-repeat; background-position: center;"></div>
-      <span>${layer.name}</span>
-    `;
+    item.textContent = layer.name;
     
     if (index === currentLayerIndex) {
-      layerOption.style.background = "rgba(66, 133, 244, 0.3)";
-      layerOption.innerHTML += `<span style="margin-left: auto; font-size: 12px;">✓</span>`;
+      item.style.background = "rgba(66, 133, 244, 0.3)";
+      item.innerHTML += ' <span style="margin-left: auto;">✓</span>';
     }
-    
-    layerOption.onmouseenter = () => {
-      if (index !== currentLayerIndex) {
-        layerOption.style.background = "rgba(255,255,255,0.1)";
-      }
+
+    item.onmouseenter = () => {
+      if (index !== currentLayerIndex) item.style.background = "rgba(255,255,255,0.1)";
     };
-    
-    layerOption.onmouseleave = () => {
-      if (index !== currentLayerIndex) {
-        layerOption.style.background = "transparent";
-      }
+    item.onmouseleave = () => {
+      if (index !== currentLayerIndex) item.style.background = "transparent";
     };
-    
-    layerOption.onclick = () => {
+
+    item.onclick = () => {
+      if (layers[currentLayerIndex].name === "Картографическая основа") {
+        clearMapLayers();
+      }
+      
       viewer.imageryLayers.removeAll();
       viewer.imageryLayers.addImageryProvider(layers[index].provider);
       currentLayerIndex = index;
       updateLayersMenu();
       layersMenu.style.display = 'none';
-    };
-    
-    layersMenu.appendChild(layerOption);
-  });
-  
-  document.body.appendChild(layersMenu);
-  
-  function updateLayersMenu() {
-    const options = layersMenu.children;
-    for (let i = 0; i < options.length; i++) {
-      const option = options[i];
-      option.style.background = i === currentLayerIndex ? 
-        "rgba(66, 133, 244, 0.3)" : "transparent";
       
-      const checkmark = option.querySelector('span:last-child');
-      if (checkmark && checkmark.textContent === '✓') {
-        checkmark.remove();
+      if (layers[currentLayerIndex].onSelect) {
+        layers[currentLayerIndex].onSelect();
       }
-      
+    };
+
+    layersMenu.appendChild(item);
+  });
+
+  document.body.appendChild(layersMenu);
+
+  function updateLayersMenu() {
+    const items = layersMenu.children;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
       if (i === currentLayerIndex) {
-        const checkmarkSpan = document.createElement("span");
-        checkmarkSpan.style.cssText = "margin-left: auto; font-size: 12px;";
-        checkmarkSpan.textContent = "✓";
-        option.appendChild(checkmarkSpan);
+        item.style.background = "rgba(66, 133, 244, 0.3)";
+        if (!item.innerHTML.includes('✓')) {
+          item.innerHTML += ' <span style="margin-left: auto;">✓</span>';
+        }
+      } else {
+        item.style.background = "transparent";
+        item.innerHTML = item.innerHTML.replace(' <span style="margin-left: auto;">✓</span>', '');
       }
     }
   }
 
-  // --- Камера на Горно-Алтайск ---
-  const lat = 51.9547;
-  const lon = 85.9558;
-  const height = 2000;
+  // --- Камера ---
   viewer.camera.setView({
-    destination: Cesium.Cartesian3.fromDegrees(lon, lat, height),
+    destination: Cesium.Cartesian3.fromDegrees(85.9558, 51.9547, 2000),
     orientation: { heading: 0, pitch: Cesium.Math.toRadians(-25), roll: 0 }
   });
 
@@ -164,54 +227,41 @@ window.onload = function () {
     commandInfo.cancel = true;
   });
 
-  // --- Настройка таймлайна ---
+  // --- Таймлайн ---
   viewer.clock.startTime = Cesium.JulianDate.fromIso8601("1834-01-01T00:00:00Z");
   viewer.clock.stopTime = Cesium.JulianDate.fromIso8601("2027-01-01T00:00:00Z");
   viewer.clock.currentTime = Cesium.JulianDate.now();
   viewer.clock.multiplier = 1;
   viewer.clock.shouldAnimate = false;
-
   viewer.timeline.makeLabel = time => Cesium.JulianDate.toDate(time).getUTCFullYear().toString();
   setTimeout(() => viewer.timeline.zoomTo(viewer.clock.startTime, viewer.clock.stopTime), 300);
 
-  // --- GeoJSON ---
-  const geojsonUrl = "https://cdn.jsdelivr.net/gh/ekrss04/Data-/Buildings.geojson";
-  Cesium.GeoJsonDataSource.load(geojsonUrl, { clampToGround: false })
-    .then(dataSource => {
-      viewer.dataSources.add(dataSource);
-      const entities = dataSource.entities.values;
-      const now = Cesium.JulianDate.now();
-      entities.forEach(entity => {
-        if (!entity.polygon || !entity.properties) return;
-        const props = entity.properties.getValue(now);
-        let height = parseFloat(props["Высота здания"]) || 10;
-        entity.polygon.height = 0;
-        entity.polygon.extrudedHeight = height;
-        entity.polygon.outline = false;
-        const color = props["Color"] || "#ffffff";
-        entity.polygon.material = Cesium.Color.fromCssColorString(color).withAlpha(0.95);
-
-        if (props["1"]) {
-          entity.availability = new Cesium.TimeIntervalCollection([ new Cesium.TimeInterval({
-            start: Cesium.JulianDate.fromIso8601(props["1"]),
-            stop: Cesium.JulianDate.fromIso8601("2027-01-01")
-          })]);
-        }
-
-        entity.description = `<b>${props["Здание"] || "Здание"}</b><br>
-          Высота: ${height} м<br>
-          Адрес: ${props["Адрес"] || ""}<br>
-          Год: ${props["Год постройки"] || ""}<br>
-          Цвет: ${color}`;
-      });
-    })
-    .catch(err => console.error("Ошибка загрузки GeoJSON:", err));
+  // --- Здания ---
+  Cesium.GeoJsonDataSource.load(
+    'https://cdn.jsdelivr.net/gh/ekrss04/Data-/Buildings.geojson',
+    { clampToGround: false }
+  ).then(dataSource => {
+    dataSource.name = 'Buildings';
+    viewer.dataSources.add(dataSource);
+    const entities = dataSource.entities.values;
+    const now = Cesium.JulianDate.now();
+    entities.forEach(entity => {
+      if (!entity.polygon || !entity.properties) return;
+      const props = entity.properties.getValue(now);
+      let height = parseFloat(props["Высота здания"]) || 10;
+      entity.polygon.height = 0;
+      entity.polygon.extrudedHeight = height;
+      entity.polygon.outline = false;
+      const color = props["Color"] || "#ffffff";
+      entity.polygon.material = Cesium.Color.fromCssColorString(color).withAlpha(0.95);
+      entity.description = `<b>${props["Здание"] || "Здание"}</b><br>Высота: ${height} м<br>Адрес: ${props["Адрес"] || ""}<br>Год: ${props["Год постройки"] || ""}`;
+    });
+  }).catch(() => {});
 
   // --- 3D модели ---
   function addModel(name, url, lon, lat, rot, scale, year) {
     const pos = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
     const orient = Cesium.Transforms.headingPitchRollQuaternion(pos, new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(rot), 0, 0));
-    
     viewer.entities.add({
       name, 
       position: pos, 
@@ -229,517 +279,217 @@ window.onload = function () {
   addModel("Голубой Алтай", "https://raw.githubusercontent.com/ekrss04/Data-/main/Голубой Алтай.glb", 85.9592352, 51.9519572, 70, 0.66, 1962);
   addModel("Дом культуры", "https://raw.githubusercontent.com/ekrss04/Data-/main/Дом%20культуры.glb", 85.961289, 51.9527243, 60.114, 0.616, 1970);
   addModel("Администрация", "https://raw.githubusercontent.com/ekrss04/Data-/main/Администрация.glb", 85.9602147, 51.9592017, 90.073, 0.615, 1985);
+  addModel("Лавка купца Тобокова", "https://raw.githubusercontent.com/ekrss04/Data-/main/Лавка%20Тобокова.glb", 85.9653642, 51.9520659, -81.488, 0.61, 1887);
 
-  // --- Кастомные кнопки UI ---
+  // --- Кнопки UI ---
   const btnHome = document.getElementById("btnHome");
   const btnLayers = document.getElementById("btnLayers");
   const btnWalk = document.getElementById("btnWalk");
   const btnGeocoder = document.getElementById("btnGeocoder");
 
-  // Home
   btnHome.onclick = () => homeButton.command();
 
-  // Layers
   btnLayers.onclick = (e) => {
     e.stopPropagation();
-    
-    if (layersMenu.style.display === 'none' || layersMenu.style.display === '') {
+    if (layersMenu.style.display === 'none') {
       const btnRect = btnLayers.getBoundingClientRect();
       layersMenu.style.top = (btnRect.bottom + 5) + 'px';
       layersMenu.style.right = (window.innerWidth - btnRect.right) + 'px';
       layersMenu.style.display = 'block';
-      
-      const closeHandler = (event) => {
-        if (!layersMenu.contains(event.target) && event.target !== btnLayers) {
-          layersMenu.style.display = 'none';
-          document.removeEventListener('click', closeHandler);
-        }
-      };
-      
       setTimeout(() => {
-        document.addEventListener('click', closeHandler);
+        document.addEventListener('click', function close(e) {
+          if (!layersMenu.contains(e.target) && e.target !== btnLayers) {
+            layersMenu.style.display = 'none';
+            document.removeEventListener('click', close);
+          }
+        });
       }, 10);
     } else {
       layersMenu.style.display = 'none';
     }
   };
 
-  // Walk
   btnWalk.onclick = () => {
     const carto = Cesium.Cartographic.fromCartesian(viewer.camera.position);
     const destination = Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, 1.7);
-    viewer.camera.flyTo({
-      destination,
-      orientation: { heading: viewer.camera.heading, pitch: 0, roll: 0 },
-      duration: 1.5
-    });
+    viewer.camera.flyTo({ destination, orientation: { heading: viewer.camera.heading, pitch: 0, roll: 0 }, duration: 1.5 });
   };
 
   // Geocoder
   const customGeocoderContainer = document.createElement("div");
-  customGeocoderContainer.style.cssText = `
-    position: absolute;
-    display: none;
-    z-index: 1001;
-  `;
-  
+  customGeocoderContainer.style.cssText = `position: absolute; display: none; z-index: 1001;`;
   const standardGeocoder = viewer.geocoder.container;
   standardGeocoder.style.position = 'static';
   standardGeocoder.style.display = 'block';
-  
   customGeocoderContainer.appendChild(standardGeocoder);
   document.body.appendChild(customGeocoderContainer);
   
   btnGeocoder.onclick = (e) => {
     e.stopPropagation();
-    
-    if (customGeocoderContainer.style.display === 'none' || customGeocoderContainer.style.display === '') {
-      const btnRect = btnGeocoder.getBoundingClientRect();
-      customGeocoderContainer.style.top = (btnRect.bottom + 5) + 'px';
-      customGeocoderContainer.style.right = (window.innerWidth - btnRect.right) + 'px';
-      customGeocoderContainer.style.display = 'block';
-      
-      const input = standardGeocoder.querySelector('input');
-      if (input) {
-        input.focus();
-      }
-      
-      const closeHandler = (event) => {
-        if (!customGeocoderContainer.contains(event.target) && event.target !== btnGeocoder) {
+    const btnRect = btnGeocoder.getBoundingClientRect();
+    customGeocoderContainer.style.top = (btnRect.bottom + 5) + 'px';
+    customGeocoderContainer.style.right = (window.innerWidth - btnRect.right) + 'px';
+    customGeocoderContainer.style.display = 'block';
+    setTimeout(() => {
+      document.addEventListener('click', function closeGeo(e) {
+        if (!customGeocoderContainer.contains(e.target) && e.target !== btnGeocoder) {
           customGeocoderContainer.style.display = 'none';
-          document.removeEventListener('click', closeHandler);
+          document.removeEventListener('click', closeGeo);
         }
-      };
-      
-      setTimeout(() => {
-        document.addEventListener('click', closeHandler);
-      }, 10);
-    } else {
-      customGeocoderContainer.style.display = 'none';
-    }
+      });
+    }, 10);
   };
 
-  // ========== КАСТОМНЫЙ ПЛЕЕР ==========
+  // --- Плеер ---
   let isPlaying = false;
-  let currentSpeed = 0;
 
-  function pauseAnimation() {
-    viewer.clock.shouldAnimate = false;
-    isPlaying = false;
-    updatePlayerButtons('pause');
+  function pauseAnimation() { viewer.clock.shouldAnimate = false; isPlaying = false; updatePlayerButtons('pause'); }
+  function playSlowAnimation() { 
+    if (Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) viewer.clock.currentTime = viewer.clock.startTime;
+    viewer.clock.multiplier = 1000000; viewer.clock.shouldAnimate = true; isPlaying = true; updatePlayerButtons('play'); 
   }
-
-  function playSlowAnimation() {
-    if (Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) {
-      viewer.clock.currentTime = viewer.clock.startTime;
-    }
-    
-    viewer.clock.multiplier = 1000000;
-    viewer.clock.shouldAnimate = true;
-    isPlaying = true;
-    currentSpeed = 1000000;
-    updatePlayerButtons('play');
+  function playFastAnimation() { 
+    if (Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) viewer.clock.currentTime = viewer.clock.startTime;
+    viewer.clock.multiplier = 100000000; viewer.clock.shouldAnimate = true; isPlaying = true; updatePlayerButtons('fast'); 
   }
-
-  function playFastAnimation() {
-    if (Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) {
-      viewer.clock.currentTime = viewer.clock.startTime;
-    }
-    
-    viewer.clock.multiplier = 100000000;
-    viewer.clock.shouldAnimate = true;
-    isPlaying = true;
-    currentSpeed = 100000000;
-    updatePlayerButtons('fast');
-  }
-
-  function goToToday() {
-    viewer.clock.shouldAnimate = false;
-    viewer.clock.currentTime = Cesium.JulianDate.now();
-    viewer.timeline.updateFromClock();
-    isPlaying = false;
-    updatePlayerButtons('pause');
-  }
-
+  function goToToday() { viewer.clock.shouldAnimate = false; viewer.clock.currentTime = Cesium.JulianDate.now(); viewer.timeline.updateFromClock(); isPlaying = false; updatePlayerButtons('pause'); }
   function updatePlayerButtons(activeBtn) {
-    const buttons = document.querySelectorAll('.player-btn');
-    buttons.forEach(btn => {
-      btn.classList.remove('active');
-    });
-    
-    const activeButton = document.querySelector(`.player-btn.${activeBtn}`);
-    if (activeButton) {
-      activeButton.classList.add('active');
-    }
+    document.querySelectorAll('.player-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.player-btn.${activeBtn}`)?.classList.add('active');
   }
-
   function checkAnimationReset() {
-    if (isPlaying && Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) {
-      viewer.clock.currentTime = viewer.clock.startTime;
-    }
+    if (isPlaying && Cesium.JulianDate.compare(viewer.clock.currentTime, viewer.clock.stopTime) >= 0) viewer.clock.currentTime = viewer.clock.startTime;
   }
 
-  function initPlayer() {
-    const playerBtns = document.querySelectorAll('.player-btn');
-    
-    playerBtns.forEach(btn => {
-      btn.onclick = () => {
-        const action = btn.className.split(' ')[1];
-        
-        switch (action) {
-          case "pause":
-            pauseAnimation();
-            break;
-          case "play":
-            playSlowAnimation();
-            break;
-          case "fast":
-            playFastAnimation();
-            break;
-          case "end":
-            goToToday();
-            break;
-        }
-      };
-      
-      btn.addEventListener('mouseenter', function() {
-        let title = '';
-        const action = this.className.split(' ')[1];
-        
-        switch (action) {
-          case "pause": title = 'Остановить анимацию'; break;
-          case "play": title = 'Медленная анимация с 1834 года'; break;
-          case "fast": title = 'Ускоренная анимация (100,000,000x) с 1834 года'; break;
-          case "end": title = 'Перейти к текущей дате'; break;
-        }
-        this.title = title;
-      });
-    });
-    
-    updatePlayerButtons('pause');
-    setInterval(checkAnimationReset, 1000);
-  }
+  document.querySelectorAll('.player-btn').forEach(btn => {
+    btn.onclick = () => {
+      const action = btn.className.split(' ')[1];
+      if (action === 'pause') pauseAnimation();
+      else if (action === 'play') playSlowAnimation();
+      else if (action === 'fast') playFastAnimation();
+      else if (action === 'end') goToToday();
+    };
+  });
+  updatePlayerButtons('pause');
+  setInterval(checkAnimationReset, 1000);
 
-  // ========== ТАЙМЛАЙН ПЕРИОДОВ ==========
-  let currentPeriod = 2027; 
-
-  function goToYear(targetYear) {
-    const targetDate = Cesium.JulianDate.fromIso8601(`${targetYear}-01-01T00:00:00Z`);
-    viewer.clock.currentTime = targetDate;
-    viewer.clock.shouldAnimate = false;
-    updatePeriodButtons(targetYear);
-    currentPeriod = targetYear;
-  }
-
-  function updatePeriodButtons(activeYear) {
-    const buttons = document.querySelectorAll('.period-btn');
-    buttons.forEach(btn => {
+  // --- Кнопки периодов ---
+  document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
       const year = parseInt(btn.dataset.year);
-      if (year === activeYear) {
-        btn.classList.add('active');
-        btn.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-        btn.style.boxShadow = '0 0 10px rgba(255, 255, 255, 0.3)';
-      } else {
-        btn.classList.remove('active');
-        btn.style.backgroundColor = 'transparent';
-        btn.style.boxShadow = 'none';
-      }
+      viewer.clock.currentTime = Cesium.JulianDate.fromIso8601(`${year}-01-01T00:00:00Z`);
+      viewer.clock.shouldAnimate = false;
     });
-  }
+    btn.style.opacity = '0.3';
+    btn.style.transition = 'all 0.3s';
+    btn.style.cursor = 'pointer';
+    btn.addEventListener('mouseenter', () => { btn.style.opacity = '0.6'; btn.style.backgroundColor = 'rgba(255,255,255,0.2)'; });
+    btn.addEventListener('mouseleave', () => { if (!btn.classList.contains('active')) { btn.style.opacity = '0.3'; btn.style.backgroundColor = 'transparent'; } });
+  });
 
-  function initTimeline() {
-    const buttons = document.querySelectorAll('.period-btn');
-    
-    buttons.forEach(btn => {
-      const year = parseInt(btn.dataset.year);
-      
-      // Делаем кнопки видимыми
-      btn.style.opacity = '0.3';
-      btn.style.transition = 'all 0.3s ease';
-      btn.style.cursor = 'pointer';
-      
-      // Эффекты при наведении
-      btn.addEventListener('mouseenter', () => {
-        btn.style.opacity = '0.5';
-        btn.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-        btn.style.boxShadow = '0 0 8px rgba(255, 255, 255, 0.2)';
-      });
-      
-      btn.addEventListener('mouseleave', () => {
-        if (!btn.classList.contains('active')) {
-          btn.style.opacity = '0.3';
-          btn.style.backgroundColor = 'transparent';
-          btn.style.boxShadow = 'none';
-        }
-      });
-      
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        goToYear(year);
-      });
-    });
-    
-    updatePeriodButtons(currentPeriod);
-  }
-
-  // ========== ПРОСТАЯ ФУНКЦИЯ УВЕЛИЧЕНИЯ ФОТО БЕЗ ФОНА ==========
+  // --- Увеличение фото ---
   function enlargePhoto(src, alt) {
     const overlay = document.createElement('div');
-    overlay.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 3000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-    `;
-    
-    const enlargedImg = document.createElement('img');
-    enlargedImg.src = src;
-    enlargedImg.alt = alt;
-    enlargedImg.style.cssText = `
-      max-width: 90%;
-      max-height: 90%;
-      object-fit: contain;
-    `;
-    
-    overlay.appendChild(enlargedImg);
-    document.body.appendChild(overlay);
-    
-    overlay.addEventListener('click', () => {
-      document.body.removeChild(overlay);
-    });
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:3000;display:flex;justify-content:center;align-items:center;cursor:pointer;background:rgba(0,0,0,0.8);';
+    const img = document.createElement('img');
+    img.src = src; img.alt = alt;
+    img.style.cssText = 'max-width:90%;max-height:90%;object-fit:contain;border-radius:8px;';
+    overlay.appendChild(img); document.body.appendChild(overlay);
+    overlay.addEventListener('click', () => document.body.removeChild(overlay));
   }
 
-  // ========== ВСПЛЫВАЮЩИЕ ОКНА ПЕРИОДОВ ==========
+  // --- Модальные окна периодов ---
   let currentModal = null;
+  function openModal(id) { if (currentModal) currentModal.style.display = 'none'; const m = document.getElementById(id); if (m) { m.style.display = 'block'; currentModal = m; m.querySelector('.modal-description')?.scrollTo(0,0); } }
+  function closeModal() { if (currentModal) { currentModal.style.display = 'none'; currentModal = null; } }
 
-  // Функция для открытия модального окна
-  function openModal(modalId) {
-    // Закрываем текущее модальное окно, если оно открыто
-    if (currentModal) {
-      currentModal.style.display = 'none';
-    }
-    
-    // Открываем новое
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      modal.style.display = 'block';
-      currentModal = modal;
-      
-      // Прокручиваем описание в начало
-      const description = modal.querySelector('.modal-description');
-      if (description) {
-        description.scrollTop = 0;
-      }
-    }
-  }
-
-  // Функция для закрытия модального окна
-  function closeModal() {
-    if (currentModal) {
-      currentModal.style.display = 'none';
-      currentModal = null;
-    }
-  }
-
-  function initModals() {
-    // Назначаем обработчики на кнопки периодов
-    const periodButtons = document.querySelectorAll('.period-btn');
-    
-    periodButtons.forEach(btn => {
+  document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const year = parseInt(btn.dataset.year);
-      
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        
-        // Определяем какое модальное окно открывать по году
-        let modalId = '';
-        switch(year) {
-          case 1850:
-            modalId = 'modalAltai';
-            break;
-          case 1921:
-            modalId = 'modalMerchant';
-            break;
-          case 1991:
-            modalId = 'modalSoviet';
-            break;
-          case 2026:
-          case 2027:
-            modalId = 'modalModern';
-            break;
-        }
-        
-        if (modalId) {
-          openModal(modalId);
-        }
-      });
+      const map = {1850:'modalAltai',1921:'modalMerchant',1991:'modalSoviet',2026:'modalModern',2027:'modalModern'};
+      if (map[year]) openModal(map[year]);
     });
-    
-    // Назначаем обработчики закрытия на все крестики
-    const closeButtons = document.querySelectorAll('.close-modal');
-    closeButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeModal();
-      });
-    });
-    
-    // Закрытие при клике на фон (только если клик именно на фон)
-    const modals = document.querySelectorAll('.period-modal');
-    modals.forEach(modal => {
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          closeModal();
-        }
-      });
-    });
-    
-    // Простая функция увеличения фото при клике
-    const modalImages = document.querySelectorAll('.period-modal .modal-image');
-    modalImages.forEach(img => {
-      img.addEventListener('click', (e) => {
-        e.stopPropagation();
-        enlargePhoto(img.src, img.alt);
-      });
-    });
-  }
+  });
+  document.querySelectorAll('.close-modal').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); closeModal(); }));
+  document.querySelectorAll('.period-modal').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) closeModal(); }));
+  document.querySelectorAll('.modal-image').forEach(i => i.addEventListener('click', (e) => { e.stopPropagation(); enlargePhoto(i.src, i.alt); }));
 
-  // ========== ВСПЛЫВАЮЩИЕ ОКНА ДЛЯ ЗДАНИЙ И МОДЕЛЕЙ ==========
+  // --- Попапы для объектов ---
   let currentPopup = null;
-
-  function openBuildingPopup(title, description) {
-    closeAllPopups();
-    
-    const popup = document.getElementById('buildingPopup');
-    document.getElementById('buildingTitle').textContent = title;
-    document.getElementById('buildingDescription').innerHTML = description;
-    
-    popup.style.display = 'block';
-    currentPopup = popup;
-  }
-
-  function openModelPopup(modelName) {
-    closeAllPopups();
-    
-    let description = '';
-    let photoUrl = '';
-    
-    switch(modelName) {
-      case 'Дом культуры':
-        description = 'Городской дом культуры г. Горно-Алтайска открыт в 1950 году на базе ликвидированного национального театра для колхозников. Дом культуры выступает как центр праздничной жизни города, где проводятся концертные программы, народные гуляния, митинги и юбилеи.';
-        photoUrl = 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Дом_культуры.jpg?raw=true';
-        break;
-      case 'Голубой Алтай':
-        description = 'Кинотеатр Голубой Алтай открыт 13 июня 1962 года. Своим фасадом и пропорциями напоминает виллы Андреа Палладио, который в свою очередь, вдохновился римским Пантеоном. Историческая и культурная ценность кинотеатра «Голубой Алтай» в Горно-Алтайске заключается в его длительной истории и роли в культурной жизни города. Здесь показывали художественные, документальные и научно-популярные фильмы. Параллельно в кинотеатре проводили зрительские и читательские конференции, киноутренники для детей и концерты.';
-        photoUrl = 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/%D0%93%D0%BE%D0%BB%D1%83%D0%B1%D0%BE%D0%B9_%D0%90%D0%BB%D1%82%D0%B0%D0%B9.jpg?raw=true';
-        break;
-      case 'Правительство':
-        description = 'Здание Правительства построено в 1935 году. По первоначальному замыслу, здание должно иметь 4-этажные боковые корпуса и 5-этажный главный корпус, украшенный символическими фигурами. Однако в процессе строительства в первоначальный вариант внесли изменения, и здание получилось более простым. На фасаде здания есть флорентийская мозаика с гербом Республики Алтай, на крыше здания развеваются флаги.';
-        photoUrl = 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/%D0%9F%D1%80%D0%B0%D0%B2%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D1%81%D1%82%D0%B2%D0%BE.jpg?raw=true';
-        break;
-      case 'Администрация':
-        description = 'Здание Администрации города Горно-Алтайска сдано в эксплуатацию 29 апреля 1969 года. Здание стало частью истории города и отражает некоторые этапы его развития, так как изначально в нем располагались горкома КПСС и горисполком. В ходе эксплуатации здание подняли на один этаж и перестроили фасад. В результате оно приобрело современный облик и хорошо вписалось в архитектурный ландшафт центра Горно-Алтайска.';
-        photoUrl = 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/%D0%90%D0%B4%D0%BC%D0%B8%D0%BD%D0%B8%D1%81%D1%82%D1%80%D0%B0%D1%86%D0%B8%D1%8F.jpg?raw=true';
-        break;
-      case 'Прокуратура':
-        description = 'Здание Прокуратуры Республики Алтай открыто 23 марта в городе Горно-Алтайске. В восьмиэтажном здании площадью более 6 тыс. кв. м разместились республиканская, межрайонная природоохранная и городская прокуратуры. Здание оснащено современными рабочими кабинетами, библиотекой, музеем, архивом, актовым и конференц-залами, спортзалом и парковкой. Фасад выполнен из современных материалов, а конструкция учитывает повышенную сейсмоактивность региона.';
-        photoUrl = 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/%D0%9F%D1%80%D0%BE%D0%BA%D1%83%D1%80%D0%B0%D1%82%D1%83%D1%80%D0%B0.jpg?raw=true';
-        break;
+  
+  function openBuildingPopup(title, desc) { 
+    if (currentPopup) currentPopup.style.display = 'none'; 
+    const p = document.getElementById('buildingPopup'); 
+    if (p) {
+      document.getElementById('buildingTitle').textContent = title; 
+      document.getElementById('buildingDescription').innerHTML = desc; 
+      p.style.display = 'block'; 
+      currentPopup = p; 
     }
-    
-    const popup = document.getElementById('modelPopup');
-    document.getElementById('modelTitle').textContent = modelName;
-    document.getElementById('modelDescription').textContent = description;
-    
-    const modelImage = document.getElementById('modelImage');
-    modelImage.src = photoUrl;
-    modelImage.alt = modelName;
-    
-    popup.style.display = 'block';
-    currentPopup = popup;
   }
-
-  function closeAllPopups() {
-    const popups = document.querySelectorAll('.popup-container');
-    popups.forEach(popup => {
-      popup.style.display = 'none';
-    });
-    currentPopup = null;
-  }
-
-  // Обновленные обработчики кликов
-  function initClickHandlers() {
-    // Обработчик кликов по зданиям и моделям
-    viewer.screenSpaceEventHandler.setInputAction(function(movement) {
-      const pickedObject = viewer.scene.pick(movement.position);
-      
-      if (Cesium.defined(pickedObject) && pickedObject.id) {
-        const entity = pickedObject.id;
-        
-        // Если это здание из GeoJSON
-        if (entity.polygon && entity.description) {
-          const description = entity.description.getValue(viewer.clock.currentTime);
-          const name = entity.properties ? entity.properties.getValue(viewer.clock.currentTime)["Здание"] || "Здание" : "Здание";
-          
-          openBuildingPopup(name, description);
-        }
-        // Если это 3D модель
-        else if (entity.model && entity.name) {
-          openModelPopup(entity.name);
-        }
+  
+  function openModelPopup(name) {
+    if (currentPopup) currentPopup.style.display = 'none';
+    
+    // Данные для моделей с ПРАВИЛЬНЫМИ ссылками на GitHub
+    const data = {
+      'Дом культуры': { 
+        desc: 'Городской дом культуры г. Горно-Алтайска открыт в 1950 году на базе ликвидированного национального театра для колхозников. Дом культуры выступает как центр праздничной жизни города, где проводятся концертные программы, народные гуляния, митинги и юбилеи.', 
+        img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Дом_культуры.jpg?raw=true' 
+      },
+      'Голубой Алтай': { 
+        desc: 'Кинотеатр Голубой Алтай открыт 13 июня 1962 года. Своим фасадом и пропорциями напоминает виллы Андреа Палладио, который в свою очередь, вдохновился римским Пантеоном. Историческая и культурная ценность кинотеатра «Голубой Алтай» в Горно-Алтайске заключается в его длительной истории и роли в культурной жизни города. Здесь показывали художественные, документальные и научно-популярные фильмы. Параллельно в кинотеатре проводили зрительские и читательские конференции, киноутренники для детей и концерты.', 
+        img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Голубой_Алтай.jpg?raw=true' 
+      },
+      'Правительство': { 
+        desc: 'Здание Правительства построено в 1935 году. По первоначальному замыслу, здание должно иметь 4-этажные боковые корпуса и 5-этажный главный корпус, украшенный символическими фигурами. Однако в процессе строительства в первоначальный вариант внесли изменения, и здание получилось более простым. На фасаде здания есть флорентийская мозаика с гербом Республики Алтай, на крыше здания развеваются флаги.', 
+        img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Правительство.jpg?raw=true' 
+      },
+      'Администрация': { 
+        desc: 'Здание Администрации города Горно-Алтайска сдано в эксплуатацию 29 апреля 1969 года. Здание стало частью истории города и отражает некоторые этапы его развития, так как изначально в нем располагались горкома КПСС и горисполком. В ходе эксплуатации здание подняли на один этаж и перестроили фасад. В результате оно приобрело современный облик и хорошо вписалось в архитектурный ландшафт центра Горно-Алтайска.', 
+        img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Администрация.jpg?raw=true' 
+      },
+      'Прокуратура': { 
+        desc: 'Здание Прокуратуры Республики Алтай открыто 23 марта в городе Горно-Алтайске. В восьмиэтажном здании площадью более 6 тыс. кв. м разместились республиканская, межрайонная природоохранная и городская прокуратуры. Здание оснащено современными рабочими кабинетами, библиотекой, музеем, архивом, актовым и конференц-залами, спортзалом и парковкой. Фасад выполнен из современных материалов, а конструкция учитывает повышенную сейсмоактивность региона.', 
+        img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Прокуратура.jpg?raw=true' 
+      },
+      'Лавка купца Тобокова': { 
+        desc: 'Лавка купца Д. М. Тобокова построена в 1887 году. Здание использовалось Даниилом Михайловичем в качестве винной лавки. В 1920-е годы здесь располагался Союз охотников. С 1926 по 1931 годы здание принадлежало Ойротскому краеведческому музею, затем передано в распоряжение Горно-Алтайской конторы государственной торговли (Горно-Алтайторг). 1989 году объект получил охранный статус и стал объектом культурного наследия регионального значения.', 
+        img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Лавка_Тобокова.jpg?raw=true' 
       }
-    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-  }
-
-  // Инициализация всплывающих окон
-  function initPopups() {
-    // Обработчики закрытия на крестики
-    const closeButtons = document.querySelectorAll('.popup-close');
-    closeButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        closeAllPopups();
-      });
-    });
+    };
     
-    // Закрытие при клике на фон
-    const popups = document.querySelectorAll('.popup-container');
-    popups.forEach(popup => {
-      popup.addEventListener('click', (e) => {
-        if (e.target === popup) {
-          closeAllPopups();
-        }
-      });
-    });
-    
-    // Обработчик для увеличения фото моделей
-    const modelImage = document.getElementById('modelImage');
-    if (modelImage) {
-      modelImage.addEventListener('click', (e) => {
-        e.stopPropagation();
-        
-        const src = modelImage.src;
-        const alt = modelImage.alt;
-        
-        if (src && src !== '') {
-          enlargePhoto(src, alt);
-        }
-      });
+    if (data[name]) {
+      const p = document.getElementById('modelPopup');
+      if (p) {
+        document.getElementById('modelTitle').textContent = name;
+        document.getElementById('modelDescription').textContent = data[name].desc;
+        document.getElementById('modelImage').src = data[name].img;
+        document.getElementById('modelImage').alt = name;
+        p.style.display = 'block'; 
+        currentPopup = p;
+      }
     }
   }
+  
+  function closeAllPopups() { 
+    document.querySelectorAll('.popup-container').forEach(p => p.style.display = 'none'); 
+    currentPopup = null; 
+  }
 
-  // Инициализация всего
-  setTimeout(() => {
-    initTimeline();
-    initPlayer();
-    initModals();
-    initClickHandlers();
-    initPopups();
-  }, 1000);
+  viewer.screenSpaceEventHandler.setInputAction(function(m) {
+    const o = viewer.scene.pick(m.position);
+    if (o?.id) {
+      if (o.id.polygon && o.id.description) {
+        const d = o.id.description.getValue(viewer.clock.currentTime);
+        const n = o.id.properties?.getValue(viewer.clock.currentTime)["Здание"] || "Здание";
+        openBuildingPopup(n, d);
+      } else if (o.id.model && o.id.name) openModelPopup(o.id.name);
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  document.querySelectorAll('.popup-close').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); closeAllPopups(); }));
+  document.querySelectorAll('.popup-container').forEach(p => p.addEventListener('click', (e) => { if (e.target === p) closeAllPopups(); }));
+  document.getElementById('modelImage')?.addEventListener('click', (e) => { e.stopPropagation(); enlargePhoto(e.target.src, e.target.alt); });
 };

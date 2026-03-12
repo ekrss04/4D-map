@@ -417,13 +417,12 @@ html, body {
   font-family: "Noah", Arial, sans-serif;
 }
 
-/* ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ ЗДАНИЙ - только уменьшена высота */
+/* ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ ЗДАНИЙ */
 .building-popup {
   top: 50px;
   right: 20px;
   width: 350px;
   height: 300px;
-  /* УМЕНЬШЕНО с 350px до 300px */
 }
 
 .building-popup .popup-bg-wrapper {
@@ -459,12 +458,12 @@ html, body {
   display: none;
 }
 
-/* ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ МОДЕЛЕЙ - только уменьшена высота */
+/* ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ МОДЕЛЕЙ */
 .model-popup {
-  top: 64px;
+  top: 60px;
   right: 20px;
   width: 430px;
-  height: 560px;
+  height: 545px;
   /* УМЕНЬШЕНО с 600px до 550px */
 }
 

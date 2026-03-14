@@ -103,11 +103,27 @@ html, body {
   border: none;
   z-index: 999;
   opacity: 0;
+  transition: all 0.3s ease;
 }
 
+/* Подсветка при наведении */
 .period-btn:hover {
-  opacity: 0.1;
-  background-color: rgba(255, 255, 255, 0.2);
+  opacity: 0.15;
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+/* Белая полоска снизу при наведении */
+.period-btn:hover::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 10%;
+  width: 80%;
+  height: 3px;
+  background: white;
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
 .period-btn.active {
@@ -212,7 +228,32 @@ html, body {
   font-weight: normal;
   font-style: normal;
 }
-/* МОДАЛЬНЫЕ ОКНА ПЕРИОДОВ - только уменьшена высота */
+/* ========== СТИЛИ ДЛЯ ЧЕРНОЙ ПОДСКАЗКИ ========== */
+#dynamicTooltip {
+  position: absolute;
+  background: transparent !important;
+  color: black !important;
+  padding: 6px 12px;
+  border-radius: 3px;
+  font-family: "Noah", Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  z-index: 3000;
+  white-space: nowrap;
+  border: none !important;
+  box-shadow: none !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#dynamicTooltip::before,
+#dynamicTooltip::after {
+  display: none !important;
+}
+
+/* ========== МОДАЛЬНЫЕ ОКНА ПЕРИОДОВ ========== */
 .period-modal {
   display: none;
   position: fixed;
@@ -220,7 +261,6 @@ html, body {
   left: 10px;
   width: 620px;
   height: 560px;
-  /* УМЕНЬШЕНО с 600px до 550px */
   z-index: 2000;
 }
 
@@ -364,7 +404,7 @@ html, body {
   -webkit-box-orient: vertical;
 }
 
-/* СТИЛИ ДЛЯ МОДАЛЬНЫХ ОКОН МОДЕЛЕЙ - только уменьшена высота */
+/* ========== СТИЛИ ДЛЯ МОДАЛЬНЫХ ОКОН МОДЕЛЕЙ ========== */
 .model-modal .modal-content {
   padding: 30px 40px 25px 40px;
 }
@@ -406,15 +446,19 @@ html, body {
 .model-modal {
   width: 600px;
   height: 680px;
-  /* УМЕНЬШЕНО с 700px до 650px */
 }
 
-/* ВСПЛЫВАЮЩИЕ ОКНА ДЛЯ ЗДАНИЙ И МОДЕЛЕЙ */
+/* ========== ВСПЛЫВАЮЩИЕ ОКНА ДЛЯ ЗДАНИЙ И МОДЕЛЕЙ ========== */
 .popup-container {
   display: none;
   position: absolute;
   z-index: 2001;
   font-family: "Noah", Arial, sans-serif;
+  pointer-events: none;
+}
+
+.popup-container * {
+  pointer-events: auto;
 }
 
 /* ОТДЕЛЬНЫЕ СТИЛИ ДЛЯ ЗДАНИЙ */
@@ -454,7 +498,7 @@ html, body {
   box-sizing: border-box;
 }
 
-.building-popup .popup-content::before {
+.building-popup .popup-title {
   display: none;
 }
 
@@ -464,7 +508,6 @@ html, body {
   right: 20px;
   width: 400px;
   height: 535px;
-  /* УМЕНЬШЕНО с 600px до 550px */
 }
 
 .model-popup .popup-bg-wrapper {
@@ -495,10 +538,6 @@ html, body {
   flex-direction: column;
   box-sizing: border-box;
   overflow: hidden;
-}
-
-.model-popup .popup-content::before {
-  display: none;
 }
 
 /* ОБЩИЕ СТИЛИ ДЛЯ ОБОИХ ТИПОВ POPUP */
@@ -547,17 +586,16 @@ html, body {
   overflow: hidden;
 }
 
-/* Для моделей делаем описание без прокрутки */
 .model-popup .popup-description {
   overflow: visible;
   margin-bottom: 20px;
 }
 
-/* Для зданий добавляем прокрутку только если нужно */
 .building-popup .popup-description {
   overflow-y: auto;
   padding-right: 10px;
   padding-bottom: 5px;
+  margin-top: 15px;
 }
 
 .building-popup .popup-description::-webkit-scrollbar {
@@ -580,7 +618,6 @@ html, body {
   flex-shrink: 0;
 }
 
-/* Картинка для моделей - размеры не меняем */
 .model-popup .popup-image {
   width: 100%;
   max-width: 300px;
@@ -592,7 +629,6 @@ html, body {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* Картинка для зданий - стандартная */
 .building-popup .popup-image {
   width: 100%;
   max-width: 280px;

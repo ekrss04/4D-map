@@ -65,15 +65,13 @@ window.onload = function () {
     // Сохраняем ссылку на источник зданий
     let buildingsDataSource = null;
 
-    // --- Функция для создания всплывающей подсказки (только для дорог и гидрографии) ---
+    // --- Функция для создания всплывающей подсказки (со смещением вправо, для линий) ---
     function createTooltip(name, screenPosition) {
-        // Удаляем старую подсказку если есть
         const oldTooltip = document.getElementById('dynamicTooltip');
         if (oldTooltip) {
             document.body.removeChild(oldTooltip);
         }
 
-        // Создаем новую подсказку без фона, черный текст
         const tooltip = document.createElement('div');
         tooltip.id = 'dynamicTooltip';
         tooltip.style.cssText = `
@@ -93,11 +91,46 @@ window.onload = function () {
         tooltip.textContent = name;
         document.body.appendChild(tooltip);
 
-        // Позиционируем подсказку рядом с местом клика
         tooltip.style.left = (screenPosition.x + 15) + 'px';
         tooltip.style.top = (screenPosition.y - 25) + 'px';
 
-        // Автоматически скрываем через 2 секунды
+        setTimeout(() => {
+            if (tooltip && tooltip.parentNode) {
+                document.body.removeChild(tooltip);
+            }
+        }, 2000);
+    }
+
+    // --- Функция для создания всплывающей подсказки для полигонов (по центру) ---
+    function createPolygonTooltip(name, screenPosition) {
+        const oldTooltip = document.getElementById('polygonTooltip');
+        if (oldTooltip) {
+            document.body.removeChild(oldTooltip);
+        }
+
+        const tooltip = document.createElement('div');
+        tooltip.id = 'polygonTooltip';
+        tooltip.style.cssText = `
+            position: absolute;
+            background: transparent;
+            color: black;
+            padding: 6px 12px;
+            border-radius: 3px;
+            font-family: 'Noah', Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+            pointer-events: none;
+            z-index: 3000;
+            white-space: nowrap;
+            transform: translate(-50%, -50%);
+        `;
+        tooltip.textContent = name;
+        document.body.appendChild(tooltip);
+
+        tooltip.style.left = screenPosition.x + 'px';
+        tooltip.style.top = screenPosition.y + 'px';
+
         setTimeout(() => {
             if (tooltip && tooltip.parentNode) {
                 document.body.removeChild(tooltip);
@@ -127,7 +160,6 @@ window.onload = function () {
             }
         }
 
-        // Управляем видимостью достопримечательностей (3D модели)
         const entities = viewer.entities.values;
         entities.forEach(entity => {
             if (entity.model && entity.name) {
@@ -149,7 +181,7 @@ window.onload = function () {
     function loadMapFoundation() {
         clearMapLayers();
 
-        // --- 0. ГРАНИЦА (ПОЛИГОН) - белая заливка над Positron ---
+        // --- 0. ГРАНИЦА (ПОЛИГОН) - белая заливка ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Granica.geojson',
             {
@@ -161,6 +193,15 @@ window.onload = function () {
         ).then(dataSource => {
             dataSource.name = 'Граница (полигон)';
             dataSource.show = layerVisibility.границаПолигон;
+            
+            // Удаляем все свойства, чтобы не было всплывающих окон
+            const entities = dataSource.entities.values;
+            entities.forEach(entity => {
+                if (entity.polygon) {
+                    entity.properties = undefined; // Удаляем свойства
+                }
+            });
+            
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
@@ -181,10 +222,12 @@ window.onload = function () {
                 if (entity.polyline) {
                     entity.polyline.material = waterColor;
                     entity.polyline.width = 3;
-                    // Добавляем название для подсказки
+                    // Сохраняем только название для подсказки, удаляем остальные свойства
                     if (entity.properties) {
                         const props = entity.properties.getValue(Cesium.JulianDate.now());
-                        entity._name = props['Название'] || props['name'] || '';
+                        const name = props['Название'] || props['name'] || '';
+                        entity._name = name;
+                        entity.properties = undefined; // Удаляем остальные свойства
                     }
                 }
             });
@@ -192,7 +235,7 @@ window.onload = function () {
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
-        // --- 2. Леса (БЕЗ ПОДСКАЗОК - просто полигоны) ---
+        // --- 2. Леса (БЕЗ ВСЯКИХ ПОДСКАЗОК) ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Rastitelnost.geojson',
             {
@@ -205,18 +248,19 @@ window.onload = function () {
             dataSource.name = 'Леса';
             dataSource.show = layerVisibility.растительность;
             
+            // Полностью удаляем все свойства
             const entities = dataSource.entities.values;
             entities.forEach(entity => {
                 if (entity.polygon) {
                     entity.polygon.material = forestColor;
-                    // НЕ добавляем _name - без подсказок
+                    entity.properties = undefined; // Удаляем все свойства
                 }
             });
             
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
-        // --- 3. Парки и скверы (БЕЗ ПОДСКАЗОК - просто полигоны) ---
+        // --- 3. Парки и скверы (ТОЛЬКО НАЗВАНИЕ ДЛЯ ПОДСКАЗКИ) ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Park.geojson',
             {
@@ -233,14 +277,20 @@ window.onload = function () {
             entities.forEach(entity => {
                 if (entity.polygon) {
                     entity.polygon.material = parkColor;
-                    // НЕ добавляем _name - без подсказок
+                    // Сохраняем только название для подсказки
+                    if (entity.properties) {
+                        const props = entity.properties.getValue(Cesium.JulianDate.now());
+                        const name = props['Название'] || props['name'] || 'Парк';
+                        entity._name = name;
+                        entity.properties = undefined; // Удаляем остальные свойства
+                    }
                 }
             });
             
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
-        // --- 4. Дороги (С ПОДСКАЗКАМИ) ---
+        // --- 4. Дороги (ТОЛЬКО НАЗВАНИЕ ДЛЯ ПОДСКАЗКИ) ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Dorogi.geojson',
             {
@@ -263,7 +313,6 @@ window.onload = function () {
 
                     if (positions) {
                         if (classStr === '1' || classStr === 'Главные' || classStr === 'главные') {
-                            // Главные дороги - двойная линия
                             newEntities.push({
                                 polyline: {
                                     positions: positions,
@@ -283,7 +332,6 @@ window.onload = function () {
                                 _name: roadName
                             });
                         } else if (classStr === '2' || classStr === 'Прочие' || classStr === 'прочие') {
-                            // Прочие дороги
                             newEntities.push({
                                 polyline: {
                                     positions: positions,
@@ -294,7 +342,6 @@ window.onload = function () {
                                 _name: roadName
                             });
                         } else {
-                            // Проезды
                             newEntities.push({
                                 polyline: {
                                     positions: positions,
@@ -312,9 +359,7 @@ window.onload = function () {
             dataSource.entities.removeAll();
             newEntities.forEach(entityData => {
                 const entity = dataSource.entities.add(entityData);
-                if (entityData._name) {
-                    entity._name = entityData._name;
-                }
+                if (entityData._name) entity._name = entityData._name;
             });
 
             viewer.dataSources.add(dataSource);
@@ -333,6 +378,15 @@ window.onload = function () {
         ).then(dataSource => {
             dataSource.name = 'Граница (линия)';
             dataSource.show = layerVisibility.границаЛиния;
+            
+            // Удаляем свойства у линейной границы
+            const entities = dataSource.entities.values;
+            entities.forEach(entity => {
+                if (entity.polyline) {
+                    entity.properties = undefined;
+                }
+            });
+            
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
     }
@@ -353,14 +407,11 @@ window.onload = function () {
         { name: "Google Спутник", provider: googleSatelliteProvider, onSelect: function() {} }
     ];
 
-    // Устанавливаем начальный слой - Картографическая основа (индекс 0)
     let currentLayerIndex = 0;
     viewer.imageryLayers.addImageryProvider(layers[currentLayerIndex].provider);
-
-    // Загружаем картографическую основу сразу
     loadMapFoundation();
 
-    // --- МАСШТАБНАЯ ЛИНЕЙКА (темно-серая, уменьшена на 30%) ---
+    // --- МАСШТАБНАЯ ЛИНЕЙКА ---
     const scaleContainer = document.createElement('div');
     scaleContainer.style.cssText = `
         position: absolute;
@@ -374,7 +425,6 @@ window.onload = function () {
         pointer-events: none;
     `;
 
-    // Уменьшенная на 30% масштабная линейка
     const scaleBar = document.createElement('div');
     scaleBar.style.cssText = `
         width: 140px;
@@ -387,7 +437,6 @@ window.onload = function () {
         box-shadow: 0 0 2px rgba(255,255,255,0.3);
     `;
 
-    // Подписи к линейке (темно-серые)
     const scaleMarkers = document.createElement('div');
     scaleMarkers.style.cssText = `
         width: 140px;
@@ -404,7 +453,6 @@ window.onload = function () {
     scaleContainer.appendChild(scaleMarkers);
     document.body.appendChild(scaleContainer);
 
-    // Функция обновления масштаба
     function updateScale() {
         if (!viewer.scene) return;
         const canvas = viewer.scene.canvas;
@@ -422,12 +470,9 @@ window.onload = function () {
         if (!leftCartesian || !rightCartesian) return;
 
         const distance = Cesium.Cartesian3.distance(leftCartesian, rightCartesian);
-
-        // Длина линейки в пикселях (уменьшена до 140px)
         const barLength = 140;
         const barDistance = (distance / width) * barLength;
 
-        // Форматируем расстояние
         let barText;
         if (barDistance < 1000) {
             barText = Math.round(barDistance / 10) * 10 + ' м';
@@ -440,11 +485,10 @@ window.onload = function () {
         scaleMarkers.querySelector('#scaleEnd').textContent = barText;
     }
 
-    // Обновляем масштаб при движении камеры
     viewer.camera.changed.addEventListener(updateScale);
     setTimeout(updateScale, 1000);
 
-    // --- ЛЕГЕНДА (белый фон, черные кнопки) ---
+    // --- ЛЕГЕНДА ---
     const legendBtn = document.createElement('div');
     legendBtn.id = 'btnLegend';
     legendBtn.className = 'ui-btn';
@@ -497,7 +541,7 @@ window.onload = function () {
                 </div>
                 <div style="display: flex; align-items: center; padding-left: 12px;">
                     <div style="width: 30px; height: 4px; background: #ace7f2; margin-right: 10px; border-radius: 2px;"></div>
-                    <span>Гидрография</span>
+                    <span>Линейная гидрография</span>
                 </div>
             </div>
 
@@ -523,7 +567,7 @@ window.onload = function () {
                 </div>
             </div>
 
-            <!-- РАСТИТЕЛЬНОСТЬ (одна кнопка для лесов и парков) -->
+            <!-- РАСТИТЕЛЬНОСТЬ -->
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <div style="font-weight: bold; color: #333; font-size: 14px;">РАСТИТЕЛЬНОСТЬ</div>
@@ -576,7 +620,6 @@ window.onload = function () {
             </div>
         `;
 
-        // Добавляем обработчики для кнопок скрытия слоев
         legendPopup.querySelectorAll('.toggle-layer').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -595,7 +638,6 @@ window.onload = function () {
     document.body.appendChild(legendPopup);
     updateLegendButtons();
 
-    // Обработчик для легенды
     legendBtn.onclick = (e) => {
         e.stopPropagation();
         if (layers[currentLayerIndex].name === "Картографическая основа") {
@@ -610,7 +652,6 @@ window.onload = function () {
         }
     };
 
-    // Закрытие при клике вне
     document.addEventListener('click', (e) => {
         if (!legendPopup.contains(e.target) && e.target !== legendBtn) {
             legendPopup.style.display = 'none';
@@ -646,7 +687,6 @@ window.onload = function () {
         `;
         item.textContent = layer.name;
 
-        // Ставим галочку если это текущий слой
         if (index === currentLayerIndex) {
             item.style.background = "rgba(66, 133, 244, 0.3)";
             item.innerHTML += ' <span style="margin-left: auto;">✓</span>';
@@ -665,7 +705,6 @@ window.onload = function () {
             }
         };
         item.onclick = () => {
-            // Очищаем только слои картографической основы, Buildings остаются
             clearMapLayers();
             viewer.imageryLayers.removeAll();
             viewer.imageryLayers.addImageryProvider(layers[index].provider);
@@ -673,7 +712,6 @@ window.onload = function () {
             updateLayersMenu();
             layersMenu.style.display = 'none';
 
-            // Загружаем слои если выбрана картографическая основа
             if (layers[currentLayerIndex].onSelect) {
                 layers[currentLayerIndex].onSelect();
             }
@@ -702,7 +740,7 @@ window.onload = function () {
         }
     }
 
-    // --- Камера на Горно-Алтайск (вид сверху) ---
+    // --- Камера ---
     viewer.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(85.9558, 51.9547, 5000),
         orientation: {
@@ -745,8 +783,7 @@ window.onload = function () {
         viewer.timeline.zoomTo(startTime, stopTime);
     }, 300);
 
-    // --- Здания с анимацией по году постройки и классификацией по назначению ---
-    // Загружаем только если еще не загружены
+    // --- Здания ---
     if (!buildingsDataSource) {
         Cesium.GeoJsonDataSource.load(
             'https://cdn.jsdelivr.net/gh/ekrss04/Data-/Buildings.geojson',
@@ -774,7 +811,6 @@ window.onload = function () {
                 entity.polygon.extrudedHeight = height;
                 entity.polygon.outline = false;
 
-                // Определяем цвет по назначению
                 let color;
                 const purposeStr = String(purpose).trim();
                 if (purposeStr === 'Жилое здание') {
@@ -784,7 +820,6 @@ window.onload = function () {
                 } else if (purposeStr === 'Сооружение') {
                     color = buildingIndustrialColor;
                 } else {
-                    // Пустое значение и прочие
                     color = buildingOtherColor;
                 }
                 entity.polygon.material = color;
@@ -800,16 +835,15 @@ window.onload = function () {
                     ]);
                 }
 
-                // Формируем описание
                 const buildingName = props["Здание"] || "Здание";
                 const purposeDisplay = props["Назначение_2"] || "не указано";
                 entity.description = `Высота: ${height} м<br> Адрес: ${props["Адрес"] || "не указан"}<br> Год постройки: ${yearStr || "не указан"}<br> Назначение: ${purposeDisplay}`;
             });
-            console.log("Здания загружены с временными интервалами");
+            console.log("Здания загружены");
         }).catch(() => {});
     }
 
-    // --- 3D модели (достопримечательности) ---
+    // --- 3D модели ---
     function addModel(name, url, lon, lat, rot, scale, year) {
         viewer.entities.add({
             name,
@@ -830,7 +864,6 @@ window.onload = function () {
         });
     }
 
-    // Добавляем 3D модели
     addModel("Правительство", "https://raw.githubusercontent.com/ekrss04/Data-/main/Правительство.glb", 85.9643593, 51.9577677, 89.959, 0.62, 1935);
     addModel("Прокуратура", "https://raw.githubusercontent.com/ekrss04/Data-/main/Прокуратура.glb", 85.9592711, 51.9567825, 91.673, 0.6, 2016);
     addModel("Голубой Алтай", "https://raw.githubusercontent.com/ekrss04/Data-/main/Голубой Алтай.glb", 85.9592352, 51.9519572, 70, 0.66, 1962);
@@ -1113,7 +1146,7 @@ window.onload = function () {
         currentPopup = null;
     }
 
-    // Обработчик кликов
+    // Обработчик кликов - ТОЛЬКО по названиям объектов
     viewer.screenSpaceEventHandler.setInputAction(function(m) {
         const pickedObject = viewer.scene.pick(m.position);
         
@@ -1124,18 +1157,34 @@ window.onload = function () {
             if (entity.polygon && entity.description && entity.properties) {
                 const description = entity.description.getValue(viewer.clock.currentTime);
                 openBuildingPopup(description);
-            } 
+                return;
+            }
+            
             // Для 3D моделей - popup с фото
-            else if (entity.model && entity.name) {
+            if (entity.model && entity.name) {
                 openModelPopup(entity.name);
+                return;
             }
-            // Только для гидрографии и дорог - черная подсказка
-            else if ((entity.polyline || (entity.polyline && entity._name)) && entity._name) {
+            
+            // Для парков - черная подсказка по центру (только название)
+            if (entity._name && entity.polygon && entity.polygon.material && 
+                entity.polygon.material.color && entity.polygon.material.color.toCssColorString() === parkColor.toCssColorString()) {
+                createPolygonTooltip(entity._name, m.position);
+                return;
+            }
+            
+            // Для гидрографии - черная подсказка со смещением
+            if (entity._name && entity.polyline) {
                 createTooltip(entity._name, m.position);
+                return;
             }
-            // Леса и парки (полигоны без _name) - игнорируем
+            
+            // Для дорог - черная подсказка со смещением
+            if (entity._name && entity.polyline && entity.polyline.width > 2) {
+                createTooltip(entity._name, m.position);
+                return;
+            }
         }
-        // При клике в пустоту ничего не делаем
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
     document.querySelectorAll('.popup-close').forEach(b => b.addEventListener('click', (e) => {
@@ -1152,6 +1201,5 @@ window.onload = function () {
         enlargePhoto(e.target.src, e.target.alt);
     });
 
-    // Обновляем масштаб при изменении размеров окна
     window.addEventListener('resize', updateScale);
 };

@@ -15,6 +15,20 @@ window.onload = function () {
         terrainProvider: new Cesium.EllipsoidTerrainProvider()
     });
 
+    // ========== ЗАГРУЗКА РЕЛЬЕФА ==========
+    const reliefTilesUrl = 'https://raw.githubusercontent.com/ekrss04/Data-/main/RELEF/{z}/{x}/{y}.png';
+    
+    const reliefProvider = new Cesium.UrlTemplateImageryProvider({
+        url: reliefTilesUrl,
+        minimumLevel: 4,
+        maximumLevel: 16,
+        credit: 'Рельеф: данные QGIS'
+    });
+    
+    let reliefLayer = null;
+    console.log("Рельеф подготовлен");
+    // ========== КОНЕЦ БЛОКА РЕЛЬЕФА ==========
+
     // Скрываем стандартные кнопки
     viewer.homeButton.container.style.display = 'none';
     viewer.sceneModePicker.container.style.display = 'none';
@@ -31,41 +45,43 @@ window.onload = function () {
     viewer.imageryLayers.removeAll();
 
     // --- Цвета для слоев карты ---
-    const waterColor = Cesium.Color.fromCssColorString('#ace7f2'); // Цвет гидрографии
-    const forestColor = Cesium.Color.fromCssColorString('#c5e6d1').withAlpha(0.7); // Леса с прозрачностью 70%
-    const parkColor = Cesium.Color.fromCssColorString('#86c882').withAlpha(0.7); // Парки, скверы с прозрачностью 70%
+    const waterColor = Cesium.Color.fromCssColorString('#ace7f2'); // Цвет линейной гидрографии
+    const waterAreaColor = Cesium.Color.fromCssColorString('#ace7f2').withAlpha(1); // Площадная гидрография - непрозрачная
+    const forestColor = Cesium.Color.fromCssColorString('#77d496').withAlpha(0.3); // Леса - темнее и прозрачнее (30% непрозрачности)
+    const parkColor = Cesium.Color.fromCssColorString('#86c882').withAlpha(0.5); // Парки, скверы
 
     // Цвета для дорог по классам
-    const roadMainBaseColor = Cesium.Color.fromCssColorString('#b0b0b0'); // Темно-серая основа для главных дорог
-    const roadMainTopColor = Cesium.Color.fromCssColorString('#c4b0a4'); // Главные дороги (бежевый) сверху
-    const roadSecondaryColor = Cesium.Color.fromCssColorString('#b0b0b0'); // Прочие дороги (темно-серый)
-    const roadLocalColor = Cesium.Color.fromCssColorString('#b0b0b0'); // Проезды (светло-серый)
+    const roadMainBaseColor = Cesium.Color.fromCssColorString('#b0b0b0');
+    const roadMainTopColor = Cesium.Color.fromCssColorString('#c4b0a4');
+    const roadSecondaryColor = Cesium.Color.fromCssColorString('#b0b0b0');
+    const roadLocalColor = Cesium.Color.fromCssColorString('#b0b0b0');
 
-    // Цвета для зданий по назначению (с прозрачностью 70%)
-    const buildingResidentialColor = Cesium.Color.fromCssColorString('#8dabc2').withAlpha(0.7); // Жилые
-    const buildingPublicColor = Cesium.Color.fromCssColorString('#ab96a5').withAlpha(0.7); // Общественные
-    const buildingIndustrialColor = Cesium.Color.fromCssColorString('#909090').withAlpha(0.7); // Сооружения
-    const buildingOtherColor = Cesium.Color.fromCssColorString('#C0C0C0').withAlpha(0.7); // Прочее
+    // Цвета для зданий
+    const buildingResidentialColor = Cesium.Color.fromCssColorString('#8dabc2').withAlpha(0.9);
+    const buildingPublicColor = Cesium.Color.fromCssColorString('#ab96a5').withAlpha(0.9);
+    const buildingIndustrialColor = Cesium.Color.fromCssColorString('#909090').withAlpha(0.9);
+    const buildingOtherColor = Cesium.Color.fromCssColorString('#C0C0C0').withAlpha(0.9);
 
-    // Цвета для границы
-    const borderFillColor = Cesium.Color.fromCssColorString('#ffffff').withAlpha(0.8); // Белая заливка с прозрачностью 80%
-    const borderStrokeColor = Cesium.Color.fromCssColorString('#b3526c'); // Красная линия
+    const borderStrokeColor = Cesium.Color.fromCssColorString('#b3526c');
 
-    // Объект для хранения состояния слоев (видимость)
     const layerVisibility = {
-        границаПолигон: true,
+        рельеф: true,
         гидрография: true,
-        растительность: true, // Одна группа для лесов и парков
+        растительность: true,
         дороги: true,
         здания: true,
         достопримечательности: true,
         границаЛиния: true
     };
 
-    // Сохраняем ссылку на источник зданий
     let buildingsDataSource = null;
 
-    // --- Функция для создания всплывающей подсказки (со смещением вправо, для линий) ---
+    function updateReliefVisibility() {
+        if (reliefLayer) {
+            reliefLayer.show = (currentLayerIndex === 0) && layerVisibility.рельеф;
+        }
+    }
+
     function createTooltip(name, screenPosition) {
         const oldTooltip = document.getElementById('dynamicTooltip');
         if (oldTooltip) {
@@ -90,7 +106,6 @@ window.onload = function () {
         `;
         tooltip.textContent = name;
         document.body.appendChild(tooltip);
-
         tooltip.style.left = (screenPosition.x + 15) + 'px';
         tooltip.style.top = (screenPosition.y - 25) + 'px';
 
@@ -101,7 +116,6 @@ window.onload = function () {
         }, 2000);
     }
 
-    // --- Функция для создания всплывающей подсказки для полигонов (по центру) ---
     function createPolygonTooltip(name, screenPosition) {
         const oldTooltip = document.getElementById('polygonTooltip');
         if (oldTooltip) {
@@ -127,7 +141,6 @@ window.onload = function () {
         `;
         tooltip.textContent = name;
         document.body.appendChild(tooltip);
-
         tooltip.style.left = screenPosition.x + 'px';
         tooltip.style.top = screenPosition.y + 'px';
 
@@ -138,14 +151,13 @@ window.onload = function () {
         }, 2000);
     }
 
-    // Функция для обновления видимости слоев
     function updateLayerVisibility() {
+        updateReliefVisibility();
+        
         const dataSources = viewer.dataSources;
         for (let i = 0; i < dataSources.length; i++) {
             const ds = dataSources.get(i);
-            if (ds.name === 'Граница (полигон)') {
-                ds.show = layerVisibility.границаПолигон;
-            } else if (ds.name === 'Гидрография линейная') {
+            if (ds.name === 'Гидрография линейная' || ds.name === 'Гидрография площадная') {
                 ds.show = layerVisibility.гидрография;
             } else if (ds.name === 'Леса') {
                 ds.show = layerVisibility.растительность;
@@ -172,7 +184,7 @@ window.onload = function () {
         const dataSources = viewer.dataSources;
         for (let i = dataSources.length - 1; i >= 0; i--) {
             const ds = dataSources.get(i);
-            if (ds.name && (ds.name.includes('Граница') || ds.name.includes('Леса') || ds.name.includes('Парки') || ds.name.includes('Гидрография') || ds.name.includes('Дороги'))) {
+            if (ds.name && (ds.name.includes('Леса') || ds.name.includes('Парки') || ds.name.includes('Гидрография') || ds.name.includes('Дороги') || ds.name.includes('Граница'))) {
                 dataSources.remove(ds);
             }
         }
@@ -181,31 +193,32 @@ window.onload = function () {
     function loadMapFoundation() {
         clearMapLayers();
 
-        // --- 0. ГРАНИЦА (ПОЛИГОН) - белая заливка ---
+        // --- ПЛОЩАДНАЯ ГИДРОГРАФИЯ (поверх линейной, непрозрачная) ---
         Cesium.GeoJsonDataSource.load(
-            'https://raw.githubusercontent.com/ekrss04/Data-/main/Granica.geojson',
+            'https://raw.githubusercontent.com/ekrss04/Data-/main/Gidrigraf.geojson',
             {
-                stroke: Cesium.Color.fromCssColorString('#ffffff').withAlpha(0),
-                strokeWidth: 0,
-                fill: borderFillColor,
+                stroke: waterAreaColor,
+                fill: waterAreaColor,
+                strokeWidth: 1,
                 clampToGround: true
             }
         ).then(dataSource => {
-            dataSource.name = 'Граница (полигон)';
-            dataSource.show = layerVisibility.границаПолигон;
+            dataSource.name = 'Гидрография площадная';
+            dataSource.show = layerVisibility.гидрография;
             
-            // Удаляем все свойства, чтобы не было всплывающих окон
             const entities = dataSource.entities.values;
             entities.forEach(entity => {
                 if (entity.polygon) {
-                    entity.properties = undefined; // Удаляем свойства
+                    entity.polygon.material = waterAreaColor;
+                    entity.properties = undefined;
                 }
             });
             
             viewer.dataSources.add(dataSource);
-        }).catch(() => {});
+            console.log("Площадная гидрография загружена");
+        }).catch(() => console.log("Файл площадной гидрографии не найден"));
 
-        // --- 1. Гидрография линейная (С ПОДСКАЗКАМИ) ---
+        // --- ЛИНЕЙНАЯ ГИДРОГРАФИЯ ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Gidrigraf_2.geojson',
             {
@@ -222,20 +235,18 @@ window.onload = function () {
                 if (entity.polyline) {
                     entity.polyline.material = waterColor;
                     entity.polyline.width = 3;
-                    // Сохраняем только название для подсказки, удаляем остальные свойства
                     if (entity.properties) {
                         const props = entity.properties.getValue(Cesium.JulianDate.now());
                         const name = props['Название'] || props['name'] || '';
                         entity._name = name;
-                        entity.properties = undefined; // Удаляем остальные свойства
+                        entity.properties = undefined;
                     }
                 }
             });
-
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
-        // --- 2. Леса (БЕЗ ВСЯКИХ ПОДСКАЗОК) ---
+        // --- Леса ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Rastitelnost.geojson',
             {
@@ -248,19 +259,17 @@ window.onload = function () {
             dataSource.name = 'Леса';
             dataSource.show = layerVisibility.растительность;
             
-            // Полностью удаляем все свойства
             const entities = dataSource.entities.values;
             entities.forEach(entity => {
                 if (entity.polygon) {
                     entity.polygon.material = forestColor;
-                    entity.properties = undefined; // Удаляем все свойства
+                    entity.properties = undefined;
                 }
             });
-            
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
-        // --- 3. Парки и скверы (ТОЛЬКО НАЗВАНИЕ ДЛЯ ПОДСКАЗКИ) ---
+        // --- Парки и скверы ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Park.geojson',
             {
@@ -277,20 +286,18 @@ window.onload = function () {
             entities.forEach(entity => {
                 if (entity.polygon) {
                     entity.polygon.material = parkColor;
-                    // Сохраняем только название для подсказки
                     if (entity.properties) {
                         const props = entity.properties.getValue(Cesium.JulianDate.now());
                         const name = props['Название'] || props['name'] || 'Парк';
                         entity._name = name;
-                        entity.properties = undefined; // Удаляем остальные свойства
+                        entity.properties = undefined;
                     }
                 }
             });
-            
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
-        // --- 4. Дороги (ТОЛЬКО НАЗВАНИЕ ДЛЯ ПОДСКАЗКИ) ---
+        // --- ДОРОГИ (CORRIDOR) ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Dorogi.geojson',
             {
@@ -314,40 +321,50 @@ window.onload = function () {
                     if (positions) {
                         if (classStr === '1' || classStr === 'Главные' || classStr === 'главные') {
                             newEntities.push({
-                                polyline: {
+                                corridor: {
                                     positions: positions,
-                                    width: 6,
+                                    width: 12,
                                     material: roadMainBaseColor,
-                                    clampToGround: true
+                                    height: 0,
+                                    extrudedHeight: 0.2,
+                                    cornerType: Cesium.CornerType.ROUNDED
                                 },
                                 _name: roadName
                             });
                             newEntities.push({
-                                polyline: {
+                                corridor: {
                                     positions: positions,
-                                    width: 4,
+                                    width: 8,
                                     material: roadMainTopColor,
-                                    clampToGround: true
+                                    height: 0.2,
+                                    extrudedHeight: 0.4,
+                                    cornerType: Cesium.CornerType.ROUNDED
                                 },
                                 _name: roadName
                             });
-                        } else if (classStr === '2' || classStr === 'Прочие' || classStr === 'прочие') {
+                        } 
+                        else if (classStr === '2' || classStr === 'Прочие' || classStr === 'прочие') {
                             newEntities.push({
-                                polyline: {
+                                corridor: {
                                     positions: positions,
-                                    width: 4,
+                                    width: 8,
                                     material: roadSecondaryColor,
-                                    clampToGround: true
+                                    height: 0,
+                                    extrudedHeight: 0.2,
+                                    cornerType: Cesium.CornerType.ROUNDED
                                 },
                                 _name: roadName
                             });
-                        } else {
+                        } 
+                        else {
                             newEntities.push({
-                                polyline: {
+                                corridor: {
                                     positions: positions,
-                                    width: 2.5,
+                                    width: 5,
                                     material: roadLocalColor,
-                                    clampToGround: true
+                                    height: 0,
+                                    extrudedHeight: 0.1,
+                                    cornerType: Cesium.CornerType.ROUNDED
                                 },
                                 _name: roadName
                             });
@@ -365,7 +382,7 @@ window.onload = function () {
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
-        // --- 5. ГРАНИЦА (ЛИНЕЙНАЯ) - красная линия ---
+        // --- ГРАНИЦА ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Gran.geojson',
             {
@@ -379,19 +396,17 @@ window.onload = function () {
             dataSource.name = 'Граница (линия)';
             dataSource.show = layerVisibility.границаЛиния;
             
-            // Удаляем свойства у линейной границы
             const entities = dataSource.entities.values;
             entities.forEach(entity => {
                 if (entity.polyline) {
                     entity.properties = undefined;
                 }
             });
-            
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
     }
 
-    // --- 5 КАРТОГРАФИЧЕСКИХ ОСНОВ ---
+    // --- КАРТОГРАФИЧЕСКИЕ ОСНОВЫ ---
     const positronProvider = new Cesium.UrlTemplateImageryProvider({
         url: "https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
     });
@@ -400,15 +415,20 @@ window.onload = function () {
     });
 
     const layers = [
-        { name: "Картографическая основа", provider: positronProvider, onSelect: loadMapFoundation },
-        { name: "Positron", provider: positronProvider, onSelect: function() {} },
-        { name: "OSM", provider: new Cesium.OpenStreetMapImageryProvider({ url: "https://a.tile.openstreetmap.org/" }), onSelect: function() {} },
-        { name: "Dark Matter", provider: new Cesium.UrlTemplateImageryProvider({ url: "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png" }), onSelect: function() {} },
-        { name: "Google Спутник", provider: googleSatelliteProvider, onSelect: function() {} }
+        { name: "Картографическая основа", provider: positronProvider, onSelect: loadMapFoundation, hasRelief: true },
+        { name: "Positron", provider: positronProvider, onSelect: function() {}, hasRelief: false },
+        { name: "OSM", provider: new Cesium.OpenStreetMapImageryProvider({ url: "https://a.tile.openstreetmap.org/" }), onSelect: function() {}, hasRelief: false },
+        { name: "Dark Matter", provider: new Cesium.UrlTemplateImageryProvider({ url: "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png" }), onSelect: function() {}, hasRelief: false },
+        { name: "Google Спутник", provider: googleSatelliteProvider, onSelect: function() {}, hasRelief: false }
     ];
 
     let currentLayerIndex = 0;
+    
     viewer.imageryLayers.addImageryProvider(layers[currentLayerIndex].provider);
+    
+    reliefLayer = viewer.imageryLayers.addImageryProvider(reliefProvider);
+    reliefLayer.alpha = 0.5;
+    
     loadMapFoundation();
 
     // --- МАСШТАБНАЯ ЛИНЕЙКА ---
@@ -488,7 +508,7 @@ window.onload = function () {
     viewer.camera.changed.addEventListener(updateScale);
     setTimeout(updateScale, 1000);
 
-    // --- ЛЕГЕНДА ---
+    // --- ЛЕГЕНДА (очищена от лишних комментариев) ---
     const legendBtn = document.createElement('div');
     legendBtn.id = 'btnLegend';
     legendBtn.className = 'ui-btn';
@@ -521,15 +541,15 @@ window.onload = function () {
             <span class="popup-close" style="position: absolute; top: 8px; right: 10px; font-size: 22px; cursor: pointer; color: #666;">&times;</span>
             <h4 style="margin: 0 0 18px 0; text-align: center; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 8px; font-size: 18px; letter-spacing: 1px;">УСЛОВНЫЕ ОБОЗНАЧЕНИЯ</h4>
 
-            <!-- ГРАНИЦЫ -->
+            <!-- РЕЛЬЕФ -->
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <div style="font-weight: bold; color: #333; font-size: 14px;">ГРАНИЦЫ</div>
-                    <button class="toggle-layer" data-layer="границаЛиния" style="background: ${layerVisibility.границаЛиния ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.границаЛиния ? '✓' : '✗'}</button>
+                    <div style="font-weight: bold; color: #333; font-size: 14px;">РЕЛЬЕФ</div>
+                    <button class="toggle-layer" data-layer="рельеф" style="background: ${layerVisibility.рельеф ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.рельеф ? '✓' : '✗'}</button>
                 </div>
                 <div style="display: flex; align-items: center; padding-left: 12px;">
-                    <div style="width: 30px; height: 4px; background: #b3526c; margin-right: 10px; border-radius: 2px;"></div>
-                    <span>Граница Горно-Алтайска</span>
+                    <div style="width: 30px; height: 20px; background: linear-gradient(135deg, #8B7355 0%, #D2B48C 50%, #F5DEB3 100%); margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div>
+                    <span>Отмывка рельефа</span>
                 </div>
             </div>
 
@@ -543,6 +563,10 @@ window.onload = function () {
                     <div style="width: 30px; height: 4px; background: #ace7f2; margin-right: 10px; border-radius: 2px;"></div>
                     <span>Линейная гидрография</span>
                 </div>
+                <div style="display: flex; align-items: center; padding-left: 12px; margin-top: 6px;">
+                    <div style="width: 30px; height: 20px; background: #ace7f2; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9aa0;"></div>
+                    <span>Площадная гидрография</span>
+                </div>
             </div>
 
             <!-- ДОРОЖНАЯ СЕТЬ -->
@@ -552,13 +576,13 @@ window.onload = function () {
                     <button class="toggle-layer" data-layer="дороги" style="background: ${layerVisibility.дороги ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.дороги ? '✓' : '✗'}</button>
                 </div>
                 <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 30px; height: 4px; background: #6a6a6a; margin-right: 10px; border-radius: 2px; position: relative;">
-                        <div style="position: absolute; top: 0; left: 2px; width: 26px; height: 2px; background: #c4b0a4; border-radius: 1px;"></div>
+                    <div style="width: 30px; height: 8px; background: #6a6a6a; margin-right: 10px; border-radius: 2px; position: relative;">
+                        <div style="position: absolute; top: 2px; left: 2px; width: 26px; height: 4px; background: #c4b0a4; border-radius: 1px;"></div>
                     </div>
                     <span>Главные дороги</span>
                 </div>
                 <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 30px; height: 4px; background: #8a8a8a; margin-right: 10px; border-radius: 2px;"></div>
+                    <div style="width: 30px; height: 6px; background: #8a8a8a; margin-right: 10px; border-radius: 2px;"></div>
                     <span>Прочие дороги</span>
                 </div>
                 <div style="display: flex; align-items: center; padding-left: 12px;">
@@ -574,7 +598,7 @@ window.onload = function () {
                     <button class="toggle-layer" data-layer="растительность" style="background: ${layerVisibility.растительность ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.растительность ? '✓' : '✗'}</button>
                 </div>
                 <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #c5e6d1; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9a60; opacity: 0.8;"></div>
+                    <div style="width: 20px; height: 20px; background: #77d496; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9a60; opacity: 0.8;"></div>
                     <span>Леса</span>
                 </div>
                 <div style="display: flex; align-items: center; padding-left: 12px;">
@@ -590,20 +614,32 @@ window.onload = function () {
                     <button class="toggle-layer" data-layer="здания" style="background: ${layerVisibility.здания ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.здания ? '✓' : '✗'}</button>
                 </div>
                 <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #8dabc2; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.7;"></div>
+                    <div style="width: 20px; height: 20px; background: #8dabc2; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div>
                     <span>Жилые</span>
                 </div>
                 <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #ab96a5; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.7;"></div>
+                    <div style="width: 20px; height: 20px; background: #ab96a5; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div>
                     <span>Общественные</span>
                 </div>
                 <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #909090; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.7;"></div>
+                    <div style="width: 20px; height: 20px; background: #909090; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div>
                     <span>Сооружения</span>
                 </div>
                 <div style="display: flex; align-items: center; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #C0C0C0; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.7;"></div>
+                    <div style="width: 20px; height: 20px; background: #C0C0C0; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div>
                     <span>Прочее</span>
+                </div>
+            </div>
+
+            <!-- ГРАНИЦА -->
+            <div style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <div style="font-weight: bold; color: #333; font-size: 14px;">ГРАНИЦА</div>
+                    <button class="toggle-layer" data-layer="границаЛиния" style="background: ${layerVisibility.границаЛиния ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.границаЛиния ? '✓' : '✗'}</button>
+                </div>
+                <div style="display: flex; align-items: center; padding-left: 12px;">
+                    <div style="width: 30px; height: 4px; background: #b3526c; margin-right: 10px; border-radius: 2px;"></div>
+                    <span>Граница Горно-Алтайска</span>
                 </div>
             </div>
 
@@ -706,8 +742,17 @@ window.onload = function () {
         };
         item.onclick = () => {
             clearMapLayers();
+            
             viewer.imageryLayers.removeAll();
             viewer.imageryLayers.addImageryProvider(layers[index].provider);
+            
+            if (layers[index].hasRelief && reliefLayer) {
+                viewer.imageryLayers.add(reliefLayer);
+                reliefLayer.show = layerVisibility.рельеф;
+            } else if (reliefLayer) {
+                reliefLayer.show = false;
+            }
+            
             currentLayerIndex = index;
             updateLayersMenu();
             layersMenu.style.display = 'none';
@@ -870,6 +915,52 @@ window.onload = function () {
     addModel("Дом культуры", "https://raw.githubusercontent.com/ekrss04/Data-/main/Дом%20культуры.glb", 85.961289, 51.9527243, 60.114, 0.616, 1970);
     addModel("Администрация", "https://raw.githubusercontent.com/ekrss04/Data-/main/Администрация.glb", 85.9602147, 51.9592017, 90.073, 0.615, 1985);
     addModel("Лавка купца Тобокова", "https://raw.githubusercontent.com/ekrss04/Data-/main/Лавка%20Тобокова.glb", 85.9653642, 51.9520659, -81.488, 0.61, 1887);
+
+    // ========== ФУНКЦИИ ДЛЯ МАРКЕРА ==========
+    function getCitySvgByYear(currentTime) {
+        const date = Cesium.JulianDate.toDate(currentTime);
+        const year = date.getUTCFullYear();
+        
+        if (year < 1932) {
+            return 'https://raw.githubusercontent.com/ekrss04/Data-/main/visual/Улала.svg';
+        } else if (year >= 1932 && year < 1948) {
+            return 'https://raw.githubusercontent.com/ekrss04/Data-/main/visual/Ойрот-Тура.svg';
+        } else {
+            return 'https://raw.githubusercontent.com/ekrss04/Data-/main/visual/Горно-Алтайск.svg';
+        }
+    }
+
+    function addCityNameMarker() {
+        const longitude = 85.891825054503002;
+        const latitude = 51.977554608212493;
+        
+        const markerEntity = viewer.entities.add({
+            name: 'city_name_marker',
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 0),
+            billboard: {
+                image: getCitySvgByYear(viewer.clock.currentTime),
+                width: 120,
+                height: 40,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+                scale: 1.0,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 10000)
+            }
+        });
+        
+        viewer.clock.onTick.addEventListener(function(clock) {
+            const newImage = getCitySvgByYear(clock.currentTime);
+            if (markerEntity.billboard.image !== newImage) {
+                markerEntity.billboard.image = newImage;
+            }
+        });
+        
+        console.log("✅ Маркер с SVG добавлен");
+    }
+
+    addCityNameMarker();
+    // ========== КОНЕЦ ФУНКЦИЙ МАРКЕРА ==========
 
     // --- Кнопки UI ---
     const btnHome = document.getElementById("btnHome");
@@ -1146,41 +1237,36 @@ window.onload = function () {
         currentPopup = null;
     }
 
-    // Обработчик кликов - ТОЛЬКО по названиям объектов
+    // Обработчик кликов
     viewer.screenSpaceEventHandler.setInputAction(function(m) {
         const pickedObject = viewer.scene.pick(m.position);
         
         if (Cesium.defined(pickedObject) && pickedObject.id) {
             const entity = pickedObject.id;
             
-            // Для зданий - полноценный popup
             if (entity.polygon && entity.description && entity.properties) {
                 const description = entity.description.getValue(viewer.clock.currentTime);
                 openBuildingPopup(description);
                 return;
             }
             
-            // Для 3D моделей - popup с фото
             if (entity.model && entity.name) {
                 openModelPopup(entity.name);
                 return;
             }
             
-            // Для парков - черная подсказка по центру (только название)
             if (entity._name && entity.polygon && entity.polygon.material && 
                 entity.polygon.material.color && entity.polygon.material.color.toCssColorString() === parkColor.toCssColorString()) {
                 createPolygonTooltip(entity._name, m.position);
                 return;
             }
             
-            // Для гидрографии - черная подсказка со смещением
             if (entity._name && entity.polyline) {
                 createTooltip(entity._name, m.position);
                 return;
             }
             
-            // Для дорог - черная подсказка со смещением
-            if (entity._name && entity.polyline && entity.polyline.width > 2) {
+            if (entity._name && entity.corridor) {
                 createTooltip(entity._name, m.position);
                 return;
             }

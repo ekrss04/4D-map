@@ -639,3 +639,251 @@ html, body {
   border: 2px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
+
+/* ========== МЕДИА-ЗАПРОСЫ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ========== */
+/* Планшеты и маленькие ноутбуки (до 1024px) */
+@media (max-width: 1024px) {
+  .period-modal {
+    width: 90%;
+    max-width: 620px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: auto;
+    max-height: 80vh;
+  }
+
+  .modal-content {
+    padding: 13px 30px 25px 30px;
+  }
+}
+/* Смартфоны (до 768px) */
+@media (max-width: 768px) {
+  /* Увеличиваем плеер */
+  #customPlayer {
+    bottom: 160px;
+    left: 10px;
+    width: 180px;
+    height: 48px;
+  }
+
+  /* Увеличиваем кнопки UI в левой верхней части */
+  #ui {
+    top: 10px;
+    right: 10px;
+    gap: 12px;
+  }
+
+  .ui-btn {
+    width: 48px;
+    height: 48px;
+    background-size: 48px 48px;
+  }
+
+  /* Делаем таймлайн прокручиваемым */
+  #timelineContainer {
+    height: 40px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+  }
+
+  #timelineSVG {
+    min-width: 400px;
+  }
+
+  /* Обертка для корректного позиционирования кнопок периодов */
+  #timelineContainer {
+    position: relative;
+  }
+
+  /* Модальные окна на весь экран */
+  .period-modal {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-width: none;
+    transform: none;
+    max-height: 90vh;
+  }
+
+  .modal-content {
+    padding: 10px 20px 20px 20px;
+  }
+
+  .modal-title {
+    font-size: 20px;
+    padding-right: 30px;
+  }
+
+  .modal-description {
+    font-size: 13px;
+  }
+
+  .images-grid {
+    gap: 6px;
+  }
+
+  .period-modal .modal-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 148/92;
+  }
+
+  .image-caption {
+    font-size: 9px;
+    max-width: 100%;
+  }
+
+  /* Всплывающие окна */
+  .building-popup,
+.model-popup {
+    top: auto;
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    width: auto;
+    max-width: none;
+    height: auto;
+    max-height: 60vh;
+  }
+
+  .model-popup {
+    max-height: 70vh;
+  }
+
+  .popup-content {
+    padding: 20px;
+  }
+
+  .popup-title {
+    font-size: 18px;
+  }
+
+  .popup-description {
+    font-size: 12px;
+  }
+}
+/* Маленькие смартфоны (до 480px) */
+@media (max-width: 480px) {
+  /* Еще больше увеличиваем плеер */
+  #customPlayer {
+    bottom: 140px;
+    left: 10px;
+    width: 200px;
+    height: 54px;
+  }
+
+  /* Кнопки UI еще больше */
+  .ui-btn {
+    width: 54px;
+    height: 54px;
+    background-size: 54px 54px;
+  }
+
+  /* Таймлайн выше */
+  #timelineContainer {
+    height: 44px;
+    bottom: 40px;
+  }
+
+  #mapTitleContainer {
+    height: 36px;
+  }
+
+  #cesiumContainer {
+    height: calc(100% - 70px);
+  }
+
+  .modal-title {
+    font-size: 18px;
+  }
+
+  .modal-description {
+    font-size: 12px;
+  }
+
+  .close-modal {
+    top: 8px;
+    right: 15px;
+    font-size: 28px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .popup-close {
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+  }
+
+  .images-grid {
+    gap: 4px;
+  }
+
+  .image-caption {
+    font-size: 8px;
+  }
+}
+/* Ландшафтная ориентация на телефонах */
+@media (max-width: 768px) and (orientation: landscape) {
+  #customPlayer {
+    bottom: 100px;
+    width: 160px;
+    height: 42px;
+  }
+
+  .ui-btn {
+    width: 40px;
+    height: 40px;
+    background-size: 40px 40px;
+  }
+
+  #timelineContainer {
+    bottom: 30px;
+    height: 36px;
+  }
+
+  .period-modal {
+    max-height: 85vh;
+  }
+
+  .modal-description {
+    max-height: 200px;
+  }
+}
+/* Отключаем hover-эффекты на тач-устройствах для лучшей производительности */
+@media (hover: none) and (pointer: coarse) {
+  .player-btn:hover {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .period-btn:hover {
+    opacity: 0;
+    background-color: transparent;
+  }
+
+  .ui-btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .period-modal .modal-image:hover {
+    transform: none;
+  }
+
+  /* Используем active вместо hover */
+  .player-btn:active {
+    background: rgba(66, 133, 244, 0.25);
+  }
+
+  .period-btn:active {
+    opacity: 0.15;
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .ui-btn:active {
+    transform: scale(0.95);
+  }
+}

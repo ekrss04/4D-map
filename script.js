@@ -26,7 +26,6 @@ window.onload = function () {
     });
     
     let reliefLayer = null;
-    console.log("Рельеф подготовлен");
     // ========== КОНЕЦ БЛОКА РЕЛЬЕФА ==========
 
     // Скрываем стандартные кнопки
@@ -45,10 +44,10 @@ window.onload = function () {
     viewer.imageryLayers.removeAll();
 
     // --- Цвета для слоев карты ---
-    const waterColor = Cesium.Color.fromCssColorString('#ace7f2'); // Цвет линейной гидрографии
-    const waterAreaColor = Cesium.Color.fromCssColorString('#ace7f2').withAlpha(1); // Площадная гидрография - непрозрачная
-    const forestColor = Cesium.Color.fromCssColorString('#77d496').withAlpha(0.3); // Леса - темнее и прозрачнее (30% непрозрачности)
-    const parkColor = Cesium.Color.fromCssColorString('#86c882').withAlpha(0.5); // Парки, скверы
+    const waterColor = Cesium.Color.fromCssColorString('#ace7f2');
+    const waterAreaColor = Cesium.Color.fromCssColorString('#ace7f2').withAlpha(1);
+    const forestColor = Cesium.Color.fromCssColorString('#77d496').withAlpha(0.3);
+    const parkColor = Cesium.Color.fromCssColorString('#86c882').withAlpha(0.5);
 
     // Цвета для дорог по классам
     const roadMainBaseColor = Cesium.Color.fromCssColorString('#b0b0b0');
@@ -56,11 +55,51 @@ window.onload = function () {
     const roadSecondaryColor = Cesium.Color.fromCssColorString('#b0b0b0');
     const roadLocalColor = Cesium.Color.fromCssColorString('#b0b0b0');
 
-    // Цвета для зданий
+    // Цвета для зданий по назначению
     const buildingResidentialColor = Cesium.Color.fromCssColorString('#8dabc2').withAlpha(0.9);
     const buildingPublicColor = Cesium.Color.fromCssColorString('#ab96a5').withAlpha(0.9);
     const buildingIndustrialColor = Cesium.Color.fromCssColorString('#909090').withAlpha(0.9);
     const buildingOtherColor = Cesium.Color.fromCssColorString('#C0C0C0').withAlpha(0.9);
+
+    // Цвета для классификации по десятилетиям
+    const decadeColors = {
+        '1820-1829': Cesium.Color.fromCssColorString('#8B0000').withAlpha(0.9),
+        '1830-1839': Cesium.Color.fromCssColorString('#B22222').withAlpha(0.9),
+        '1840-1849': Cesium.Color.fromCssColorString('#DC143C').withAlpha(0.9),
+        '1850-1859': Cesium.Color.fromCssColorString('#FF4500').withAlpha(0.9),
+        '1860-1869': Cesium.Color.fromCssColorString('#FF6347').withAlpha(0.9),
+        '1870-1879': Cesium.Color.fromCssColorString('#FFA500').withAlpha(0.9),
+        '1880-1889': Cesium.Color.fromCssColorString('#FFD700').withAlpha(0.9),
+        '1890-1899': Cesium.Color.fromCssColorString('#FFFF00').withAlpha(0.9),
+        '1900-1909': Cesium.Color.fromCssColorString('#ADFF2F').withAlpha(0.9),
+        '1910-1919': Cesium.Color.fromCssColorString('#7CFC00').withAlpha(0.9),
+        '1920-1929': Cesium.Color.fromCssColorString('#32CD32').withAlpha(0.9),
+        '1930-1939': Cesium.Color.fromCssColorString('#00FF7F').withAlpha(0.9),
+        '1940-1949': Cesium.Color.fromCssColorString('#00FA9A').withAlpha(0.9),
+        '1950-1959': Cesium.Color.fromCssColorString('#90EE90').withAlpha(0.9),
+        '1960-1969': Cesium.Color.fromCssColorString('#98FB98').withAlpha(0.9),
+        '1970-1979': Cesium.Color.fromCssColorString('#3CB371').withAlpha(0.9),
+        '1980-1989': Cesium.Color.fromCssColorString('#2E8B57').withAlpha(0.9),
+        '1990-1999': Cesium.Color.fromCssColorString('#228B22').withAlpha(0.9),
+        '2000-2009': Cesium.Color.fromCssColorString('#006400').withAlpha(0.9),
+        '2010-2019': Cesium.Color.fromCssColorString('#008000').withAlpha(0.9),
+        '2020-2029': Cesium.Color.fromCssColorString('#00FF00').withAlpha(0.9)
+    };
+
+    // Цвета для классификации по этажности
+    const floorsColors = {
+        1: Cesium.Color.fromCssColorString('#FFFACD').withAlpha(0.9),
+        2: Cesium.Color.fromCssColorString('#FFF59D').withAlpha(0.9),
+        3: Cesium.Color.fromCssColorString('#FFE082').withAlpha(0.9),
+        4: Cesium.Color.fromCssColorString('#FFD54F').withAlpha(0.9),
+        5: Cesium.Color.fromCssColorString('#FFCA28').withAlpha(0.9),
+        6: Cesium.Color.fromCssColorString('#FFC107').withAlpha(0.9),
+        7: Cesium.Color.fromCssColorString('#FFB300').withAlpha(0.9),
+        8: Cesium.Color.fromCssColorString('#FFA000').withAlpha(0.9),
+        9: Cesium.Color.fromCssColorString('#FF8F00').withAlpha(0.9),
+        10: Cesium.Color.fromCssColorString('#FF6F00').withAlpha(0.9),
+        '10+': Cesium.Color.fromCssColorString('#E65100').withAlpha(0.9)
+    };
 
     const borderStrokeColor = Cesium.Color.fromCssColorString('#b3526c');
 
@@ -74,7 +113,81 @@ window.onload = function () {
         границаЛиния: true
     };
 
+    // Классификация зданий
+    let currentClassification = 'purpose';
+    let expandedSections = {
+        purpose: false,
+        decade: false,
+        floors: false
+    };
+
     let buildingsDataSource = null;
+
+    // Функция получения цвета по десятилетию
+    function getColorByDecade(year) {
+        let yearNum = parseInt(year);
+        if (isNaN(yearNum)) return buildingOtherColor;
+        
+        const startDecade = Math.floor(yearNum / 10) * 10;
+        const decadeKey = `${startDecade}-${startDecade + 9}`;
+        
+        return decadeColors[decadeKey] || buildingOtherColor;
+    }
+
+    // Функция получения цвета по этажности
+    function getColorByFloorsCount(floors) {
+        let floorsNum = parseInt(floors);
+        if (isNaN(floorsNum)) return buildingOtherColor;
+        
+        if (floorsNum >= 10) return floorsColors['10+'];
+        return floorsColors[floorsNum] || buildingOtherColor;
+    }
+
+    // Функция обновления цветов зданий
+    function updateBuildingsClassification() {
+        if (!buildingsDataSource) return;
+        
+        const entities = buildingsDataSource.entities.values;
+        const now = Cesium.JulianDate.now();
+        
+        entities.forEach(entity => {
+            if (!entity.polygon || !entity.properties) return;
+            
+            const props = entity.properties.getValue(now);
+            let color;
+            
+            switch(currentClassification) {
+                case 'purpose':
+                    const purpose = props["Назначение_2"] || '';
+                    const purposeStr = String(purpose).trim();
+                    if (purposeStr === 'Жилое здание') {
+                        color = buildingResidentialColor;
+                    } else if (purposeStr === 'Общественное здание') {
+                        color = buildingPublicColor;
+                    } else if (purposeStr === 'Сооружение') {
+                        color = buildingIndustrialColor;
+                    } else {
+                        color = buildingOtherColor;
+                    }
+                    break;
+                    
+                case 'decade':
+                    const yearStr = props["Год постройки"];
+                    color = getColorByDecade(yearStr);
+                    break;
+                    
+                case 'floors':
+                    const floorsStr = props["Количесто этажей"];
+                    color = getColorByFloorsCount(floorsStr);
+                    break;
+                    
+                default:
+                    color = buildingOtherColor;
+            }
+            
+            entity.polygon.material = color;
+        });
+    }
 
     function updateReliefVisibility() {
         if (reliefLayer) {
@@ -193,7 +306,7 @@ window.onload = function () {
     function loadMapFoundation() {
         clearMapLayers();
 
-        // --- ПЛОЩАДНАЯ ГИДРОГРАФИЯ (поверх линейной, непрозрачная) ---
+        // --- ПЛОЩАДНАЯ ГИДРОГРАФИЯ ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Gidrigraf.geojson',
             {
@@ -215,8 +328,7 @@ window.onload = function () {
             });
             
             viewer.dataSources.add(dataSource);
-            console.log("Площадная гидрография загружена");
-        }).catch(() => console.log("Файл площадной гидрографии не найден"));
+        }).catch(() => {});
 
         // --- ЛИНЕЙНАЯ ГИДРОГРАФИЯ ---
         Cesium.GeoJsonDataSource.load(
@@ -508,7 +620,7 @@ window.onload = function () {
     viewer.camera.changed.addEventListener(updateScale);
     setTimeout(updateScale, 1000);
 
-    // --- ЛЕГЕНДА (очищена от лишних комментариев) ---
+    // --- ЛЕГЕНДА ---
     const legendBtn = document.createElement('div');
     legendBtn.id = 'btnLegend';
     legendBtn.className = 'ui-btn';
@@ -536,12 +648,104 @@ window.onload = function () {
         display: none;
     `;
 
+    function toggleSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+            const isVisible = section.style.display === 'block';
+            section.style.display = isVisible ? 'none' : 'block';
+            expandedSections[sectionId.replace('section-', '')] = !isVisible;
+        }
+    }
+
     function updateLegendButtons() {
+        let classificationsHtml = `
+            <div style="margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <div style="font-weight: bold; color: #333; font-size: 14px;">ЗДАНИЯ</div>
+                    <button class="toggle-layer" data-layer="здания" style="background: ${layerVisibility.здания ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.здания ? '✓' : '✗'}</button>
+                </div>
+                
+                <div style="margin-left: 12px; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="toggleSection('section-purpose')">
+                        <span style="font-size: 14px;">${expandedSections.purpose ? '▼' : '▶'}</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="buildingClassification" value="purpose" ${currentClassification === 'purpose' ? 'checked' : ''} style="cursor: pointer;">
+                            <span style="font-weight: 500;">По назначению</span>
+                        </div>
+                    </div>
+                    <div id="section-purpose" style="margin-left: 24px; margin-top: 6px; display: ${expandedSections.purpose ? 'block' : 'none'};">
+                        <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #8dabc2; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Жилые</span></div>
+                        <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #ab96a5; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Общественные</span></div>
+                        <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #909090; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Сооружения</span></div>
+                        <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #C0C0C0; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Прочее</span></div>
+                    </div>
+                </div>
+                
+                <div style="margin-left: 12px; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="toggleSection('section-decade')">
+                        <span style="font-size: 14px;">${expandedSections.decade ? '▼' : '▶'}</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="buildingClassification" value="decade" ${currentClassification === 'decade' ? 'checked' : ''} style="cursor: pointer;">
+                            <span style="font-weight: 500;">По году постройки</span>
+                        </div>
+                    </div>
+                    <div id="section-decade" style="margin-left: 24px; margin-top: 6px; display: ${expandedSections.decade ? 'block' : 'none'};">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px;">
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #8B0000; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1820-1829</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #B22222; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1830-1839</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #DC143C; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1840-1849</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FF4500; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1850-1859</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FF6347; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1860-1869</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFA500; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1870-1879</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFD700; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1880-1889</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFFF00; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1890-1899</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #ADFF2F; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1900-1909</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #7CFC00; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1910-1919</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #32CD32; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1920-1929</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #00FF7F; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1930-1939</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #00FA9A; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1940-1949</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #90EE90; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1950-1959</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #98FB98; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1960-1969</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #3CB371; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1970-1979</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #2E8B57; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1980-1989</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #228B22; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1990-1999</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #006400; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">2000-2009</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #008000; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">2010-2019</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #00FF00; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">2020-2029</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-left: 12px; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="toggleSection('section-floors')">
+                        <span style="font-size: 14px;">${expandedSections.floors ? '▼' : '▶'}</span>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="buildingClassification" value="floors" ${currentClassification === 'floors' ? 'checked' : ''} style="cursor: pointer;">
+                            <span style="font-weight: 500;">По этажности</span>
+                        </div>
+                    </div>
+                    <div id="section-floors" style="margin-left: 24px; margin-top: 6px; display: ${expandedSections.floors ? 'block' : 'none'};">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px;">
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFFACD; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1 этаж</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFF59D; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">2 этажа</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFE082; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">3 этажа</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFD54F; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">4 этажа</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFCA28; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">5 этажей</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFC107; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">6 этажей</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFB300; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">7 этажей</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFA000; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">8 этажей</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FF8F00; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">9 этажей</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #E65100; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">10+ этажей</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
         legendPopup.innerHTML = `
             <span class="popup-close" style="position: absolute; top: 8px; right: 10px; font-size: 22px; cursor: pointer; color: #666;">&times;</span>
             <h4 style="margin: 0 0 18px 0; text-align: center; color: #333; border-bottom: 1px solid #ddd; padding-bottom: 8px; font-size: 18px; letter-spacing: 1px;">УСЛОВНЫЕ ОБОЗНАЧЕНИЯ</h4>
 
-            <!-- РЕЛЬЕФ -->
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <div style="font-weight: bold; color: #333; font-size: 14px;">РЕЛЬЕФ</div>
@@ -553,108 +757,62 @@ window.onload = function () {
                 </div>
             </div>
 
-            <!-- ГИДРОГРАФИЯ -->
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <div style="font-weight: bold; color: #333; font-size: 14px;">ГИДРОГРАФИЯ</div>
                     <button class="toggle-layer" data-layer="гидрография" style="background: ${layerVisibility.гидрография ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.гидрография ? '✓' : '✗'}</button>
                 </div>
-                <div style="display: flex; align-items: center; padding-left: 12px;">
-                    <div style="width: 30px; height: 4px; background: #ace7f2; margin-right: 10px; border-radius: 2px;"></div>
-                    <span>Линейная гидрография</span>
-                </div>
-                <div style="display: flex; align-items: center; padding-left: 12px; margin-top: 6px;">
-                    <div style="width: 30px; height: 20px; background: #ace7f2; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9aa0;"></div>
-                    <span>Площадная гидрография</span>
-                </div>
+                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #ace7f2; margin-right: 10px; border-radius: 2px;"></div><span>Линейная гидрография</span></div>
+                <div style="display: flex; align-items: center; padding-left: 12px; margin-top: 6px;"><div style="width: 30px; height: 20px; background: #ace7f2; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9aa0;"></div><span>Площадная гидрография</span></div>
             </div>
 
-            <!-- ДОРОЖНАЯ СЕТЬ -->
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <div style="font-weight: bold; color: #333; font-size: 14px;">ДОРОЖНАЯ СЕТЬ</div>
                     <button class="toggle-layer" data-layer="дороги" style="background: ${layerVisibility.дороги ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.дороги ? '✓' : '✗'}</button>
                 </div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 30px; height: 8px; background: #6a6a6a; margin-right: 10px; border-radius: 2px; position: relative;">
-                        <div style="position: absolute; top: 2px; left: 2px; width: 26px; height: 4px; background: #c4b0a4; border-radius: 1px;"></div>
-                    </div>
-                    <span>Главные дороги</span>
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 30px; height: 6px; background: #8a8a8a; margin-right: 10px; border-radius: 2px;"></div>
-                    <span>Прочие дороги</span>
-                </div>
-                <div style="display: flex; align-items: center; padding-left: 12px;">
-                    <div style="width: 30px; height: 4px; background: #b0b0b0; margin-right: 10px; border-radius: 2px;"></div>
-                    <span>Проезды</span>
-                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 8px; background: #6a6a6a; margin-right: 10px; border-radius: 2px; position: relative;"><div style="position: absolute; top: 2px; left: 2px; width: 26px; height: 4px; background: #c4b0a4; border-radius: 1px;"></div></div><span>Главные дороги</span></div>
+                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 6px; background: #8a8a8a; margin-right: 10px; border-radius: 2px;"></div><span>Прочие дороги</span></div>
+                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #b0b0b0; margin-right: 10px; border-radius: 2px;"></div><span>Проезды</span></div>
             </div>
 
-            <!-- РАСТИТЕЛЬНОСТЬ -->
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <div style="font-weight: bold; color: #333; font-size: 14px;">РАСТИТЕЛЬНОСТЬ</div>
                     <button class="toggle-layer" data-layer="растительность" style="background: ${layerVisibility.растительность ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.растительность ? '✓' : '✗'}</button>
                 </div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #77d496; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9a60; opacity: 0.8;"></div>
-                    <span>Леса</span>
-                </div>
-                <div style="display: flex; align-items: center; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #86c882; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9a60; opacity: 0.8;"></div>
-                    <span>Парки, скверы</span>
-                </div>
+                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 20px; height: 20px; background: #77d496; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9a60; opacity: 0.8;"></div><span>Леса</span></div>
+                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 20px; height: 20px; background: #86c882; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9a60; opacity: 0.8;"></div><span>Парки, скверы</span></div>
             </div>
 
-            <!-- ЗДАНИЯ -->
-            <div style="margin-bottom: 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <div style="font-weight: bold; color: #333; font-size: 14px;">ЗДАНИЯ</div>
-                    <button class="toggle-layer" data-layer="здания" style="background: ${layerVisibility.здания ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.здания ? '✓' : '✗'}</button>
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #8dabc2; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div>
-                    <span>Жилые</span>
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #ab96a5; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div>
-                    <span>Общественные</span>
-                </div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #909090; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div>
-                    <span>Сооружения</span>
-                </div>
-                <div style="display: flex; align-items: center; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #C0C0C0; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div>
-                    <span>Прочее</span>
-                </div>
-            </div>
+            ${classificationsHtml}
 
-            <!-- ГРАНИЦА -->
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <div style="font-weight: bold; color: #333; font-size: 14px;">ГРАНИЦА</div>
                     <button class="toggle-layer" data-layer="границаЛиния" style="background: ${layerVisibility.границаЛиния ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.границаЛиния ? '✓' : '✗'}</button>
                 </div>
-                <div style="display: flex; align-items: center; padding-left: 12px;">
-                    <div style="width: 30px; height: 4px; background: #b3526c; margin-right: 10px; border-radius: 2px;"></div>
-                    <span>Граница Горно-Алтайска</span>
-                </div>
+                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #b3526c; margin-right: 10px; border-radius: 2px;"></div><span>Граница Горно-Алтайска</span></div>
             </div>
 
-            <!-- 3D МОДЕЛИ -->
             <div style="margin-bottom: 10px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <div style="font-weight: bold; color: #333; font-size: 14px;">3D МОДЕЛИ</div>
                     <button class="toggle-layer" data-layer="достопримечательности" style="background: ${layerVisibility.достопримечательности ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.достопримечательности ? '✓' : '✗'}</button>
                 </div>
-                <div style="display: flex; align-items: center; padding-left: 12px;">
-                    <div style="width: 20px; height: 20px; background: #d4a373; margin-right: 10px; border-radius: 3px; border: 1px solid #a07453;"></div>
-                    <span>Исторические здания</span>
-                </div>
+                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 20px; height: 20px; background: #d4a373; margin-right: 10px; border-radius: 3px; border: 1px solid #a07453;"></div><span>Исторические здания</span></div>
             </div>
         `;
+
+        const radioButtons = legendPopup.querySelectorAll('input[name="buildingClassification"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    currentClassification = e.target.value;
+                    updateBuildingsClassification();
+                }
+            });
+        });
 
         legendPopup.querySelectorAll('.toggle-layer').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -670,6 +828,8 @@ window.onload = function () {
             legendPopup.style.display = 'none';
         };
     }
+
+    window.toggleSection = toggleSection;
 
     document.body.appendChild(legendPopup);
     updateLegendButtons();
@@ -850,22 +1010,35 @@ window.onload = function () {
                 const props = entity.properties.getValue(now);
                 let height = parseFloat(props["Высота здания"]) || 10;
                 const yearStr = props["Год постройки"];
-                const purpose = props["Назначение_2"] || '';
+                const floorsStr = props["Количесто этажей"];
 
                 entity.polygon.height = 0;
                 entity.polygon.extrudedHeight = height;
                 entity.polygon.outline = false;
 
                 let color;
-                const purposeStr = String(purpose).trim();
-                if (purposeStr === 'Жилое здание') {
-                    color = buildingResidentialColor;
-                } else if (purposeStr === 'Общественное здание') {
-                    color = buildingPublicColor;
-                } else if (purposeStr === 'Сооружение') {
-                    color = buildingIndustrialColor;
-                } else {
-                    color = buildingOtherColor;
+                switch(currentClassification) {
+                    case 'purpose':
+                        const purpose = props["Назначение_2"] || '';
+                        const purposeStr = String(purpose).trim();
+                        if (purposeStr === 'Жилое здание') {
+                            color = buildingResidentialColor;
+                        } else if (purposeStr === 'Общественное здание') {
+                            color = buildingPublicColor;
+                        } else if (purposeStr === 'Сооружение') {
+                            color = buildingIndustrialColor;
+                        } else {
+                            color = buildingOtherColor;
+                        }
+                        break;
+                    case 'decade':
+                        color = getColorByDecade(yearStr);
+                        break;
+                    case 'floors':
+                        color = getColorByFloorsCount(floorsStr);
+                        break;
+                    default:
+                        color = buildingOtherColor;
                 }
                 entity.polygon.material = color;
 
@@ -882,9 +1055,9 @@ window.onload = function () {
 
                 const buildingName = props["Здание"] || "Здание";
                 const purposeDisplay = props["Назначение_2"] || "не указано";
-                entity.description = `Высота: ${height} м<br> Адрес: ${props["Адрес"] || "не указан"}<br> Год постройки: ${yearStr || "не указан"}<br> Назначение: ${purposeDisplay}`;
+                const floorsDisplay = props["Количесто этажей"] || "не указано";
+                entity.description = `Высота: ${height} м<br>Этажей: ${floorsDisplay}<br> Адрес: ${props["Адрес"] || "не указан"}<br> Год постройки: ${yearStr || "не указан"}<br> Назначение: ${purposeDisplay}`;
             });
-            console.log("Здания загружены");
         }).catch(() => {});
     }
 
@@ -913,10 +1086,11 @@ window.onload = function () {
     addModel("Прокуратура", "https://raw.githubusercontent.com/ekrss04/Data-/main/Прокуратура.glb", 85.9592711, 51.9567825, 91.673, 0.6, 2016);
     addModel("Голубой Алтай", "https://raw.githubusercontent.com/ekrss04/Data-/main/Голубой Алтай.glb", 85.9592352, 51.9519572, 70, 0.66, 1962);
     addModel("Дом культуры", "https://raw.githubusercontent.com/ekrss04/Data-/main/Дом%20культуры.glb", 85.961289, 51.9527243, 60.114, 0.616, 1970);
+    addModel("Мечеть", "https://raw.githubusercontent.com/ekrss04/Data-/main/Мечеть.glb", 85.898202, 51.9675375, 54.022, 0.6, 2024);
     addModel("Администрация", "https://raw.githubusercontent.com/ekrss04/Data-/main/Администрация.glb", 85.9602147, 51.9592017, 90.073, 0.615, 1985);
     addModel("Лавка купца Тобокова", "https://raw.githubusercontent.com/ekrss04/Data-/main/Лавка%20Тобокова.glb", 85.9653642, 51.9520659, -81.488, 0.61, 1887);
 
-    // ========== ФУНКЦИИ ДЛЯ МАРКЕРА ==========
+    // ========== МАРКЕР ==========
     function getCitySvgByYear(currentTime) {
         const date = Cesium.JulianDate.toDate(currentTime);
         const year = date.getUTCFullYear();
@@ -955,12 +1129,10 @@ window.onload = function () {
                 markerEntity.billboard.image = newImage;
             }
         });
-        
-        console.log("✅ Маркер с SVG добавлен");
     }
 
     addCityNameMarker();
-    // ========== КОНЕЦ ФУНКЦИЙ МАРКЕРА ==========
+    // ========== КОНЕЦ МАРКЕРА ==========
 
     // --- Кнопки UI ---
     const btnHome = document.getElementById("btnHome");
@@ -1033,7 +1205,7 @@ window.onload = function () {
         }, 10);
     };
 
-    // --- Плеер (анимация) ---
+    // --- Плеер ---
     let isPlaying = false;
 
     function pauseAnimation() {
@@ -1129,7 +1301,7 @@ window.onload = function () {
         overlay.addEventListener('click', () => document.body.removeChild(overlay));
     }
 
-    // --- Модальные окна периодов ---
+    // --- Модальные окна ---
     let currentModal = null;
 
     function openModal(id) {
@@ -1172,7 +1344,7 @@ window.onload = function () {
         enlargePhoto(i.src, i.alt);
     }));
 
-    // --- Попапы для объектов ---
+    // --- Попапы ---
     let currentPopup = null;
 
     function openBuildingPopup(description) {
@@ -1207,6 +1379,10 @@ window.onload = function () {
             'Прокуратура': {
                 desc: 'Здание Прокуратуры Республики Алтай открыто 23 марта в городе Горно-Алтайске. В восьмиэтажном здании площадью более 6 тыс. кв. м разместились республиканская, межрайонная природоохранная и городская прокуратуры. Здание оснащено современными рабочими кабинетами, библиотекой, музеем, архивом, актовым и конференц-залами, спортзалом и парковкой. Фасад выполнен из современных материалов, а конструкция учитывает повышенную сейсмоактивность региона.',
                 img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Прокуратура.jpg?raw=true'
+            },
+            'Мечеть Духовного управления мусульман': {
+                desc: 'Мечеть Духовного управления мусульман (Соборная мечеть имени Аскара Зианурова) открыта 28 сентября 2013 года. Здание вмещает более трехсот верующих. Это светлое одноэтажное здание с синими куполами и двумя минаретами. Рядом расположено двухэтажное здание медресе, мусульманского учебного заведения, где занимаются мужская, женская и детская группы. Новую мечеть назвали в честь безвременно ушедшего из жизни активиста мусульманской организации Горно-Алтайска Аскара Зианурова, который стоял у истоков строительства мечети и финансировал с родственниками строительные работы.',
+                img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Мечеть.jpg?raw=true'
             },
             'Лавка купца Тобокова': {
                 desc: 'Лавка купца Д. М. Тобокова построена в 1887 году. Здание использовалось Даниилом Михайловичем в качестве винной лавки. В 1920-е годы здесь располагался Союз охотников. С 1926 по 1931 годы здание принадлежало Ойротскому краеведческому музею, затем передано в распоряжение Горно-Алтайской конторы государственной торговли (Горно-Алтайторг). 1989 году объект получил охранный статус и стал объектом культурного наследия регионального значения.',

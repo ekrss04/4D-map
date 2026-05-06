@@ -61,30 +61,30 @@ window.onload = function () {
     const buildingIndustrialColor = Cesium.Color.fromCssColorString('#909090').withAlpha(0.9);
     const buildingOtherColor = Cesium.Color.fromCssColorString('#C0C0C0').withAlpha(0.9);
 
-    // Цвета для классификации по десятилетиям
+    // Цвета для классификации по десятилетиям (градиент от фиолетового к красному)
     const decadeColors = {
-        '1820-1829': Cesium.Color.fromCssColorString('#8B0000').withAlpha(0.9),
-        '1830-1839': Cesium.Color.fromCssColorString('#B22222').withAlpha(0.9),
-        '1840-1849': Cesium.Color.fromCssColorString('#DC143C').withAlpha(0.9),
-        '1850-1859': Cesium.Color.fromCssColorString('#FF4500').withAlpha(0.9),
-        '1860-1869': Cesium.Color.fromCssColorString('#FF6347').withAlpha(0.9),
-        '1870-1879': Cesium.Color.fromCssColorString('#FFA500').withAlpha(0.9),
-        '1880-1889': Cesium.Color.fromCssColorString('#FFD700').withAlpha(0.9),
-        '1890-1899': Cesium.Color.fromCssColorString('#FFFF00').withAlpha(0.9),
-        '1900-1909': Cesium.Color.fromCssColorString('#ADFF2F').withAlpha(0.9),
-        '1910-1919': Cesium.Color.fromCssColorString('#7CFC00').withAlpha(0.9),
-        '1920-1929': Cesium.Color.fromCssColorString('#32CD32').withAlpha(0.9),
-        '1930-1939': Cesium.Color.fromCssColorString('#00FF7F').withAlpha(0.9),
-        '1940-1949': Cesium.Color.fromCssColorString('#00FA9A').withAlpha(0.9),
-        '1950-1959': Cesium.Color.fromCssColorString('#90EE90').withAlpha(0.9),
-        '1960-1969': Cesium.Color.fromCssColorString('#98FB98').withAlpha(0.9),
-        '1970-1979': Cesium.Color.fromCssColorString('#3CB371').withAlpha(0.9),
-        '1980-1989': Cesium.Color.fromCssColorString('#2E8B57').withAlpha(0.9),
-        '1990-1999': Cesium.Color.fromCssColorString('#228B22').withAlpha(0.9),
-        '2000-2009': Cesium.Color.fromCssColorString('#006400').withAlpha(0.9),
-        '2010-2019': Cesium.Color.fromCssColorString('#008000').withAlpha(0.9),
-        '2020-2029': Cesium.Color.fromCssColorString('#00FF00').withAlpha(0.9)
-    };
+        '1820-1829': Cesium.Color.fromCssColorString('#FFF176').withAlpha(0.9), // светло-жёлтый
+        '1830-1839': Cesium.Color.fromCssColorString('#FFE082').withAlpha(0.9),
+        '1840-1849': Cesium.Color.fromCssColorString('#FFD54F').withAlpha(0.9),
+        '1850-1859': Cesium.Color.fromCssColorString('#FFCA28').withAlpha(0.9),
+        '1860-1869': Cesium.Color.fromCssColorString('#FFC107').withAlpha(0.9),
+        '1870-1879': Cesium.Color.fromCssColorString('#FFB300').withAlpha(0.9),
+        '1880-1889': Cesium.Color.fromCssColorString('#E6A800').withAlpha(0.9),
+        '1890-1899': Cesium.Color.fromCssColorString('#CC9A00').withAlpha(0.9),
+        '1900-1909': Cesium.Color.fromCssColorString('#D4A574').withAlpha(0.9),
+        '1910-1919': Cesium.Color.fromCssColorString('#C8956C').withAlpha(0.9),
+        '1920-1929': Cesium.Color.fromCssColorString('#BA8565').withAlpha(0.9),
+        '1930-1939': Cesium.Color.fromCssColorString('#AB7A6D').withAlpha(0.9),
+        '1940-1949': Cesium.Color.fromCssColorString('#9C6E7A').withAlpha(0.9),
+        '1950-1959': Cesium.Color.fromCssColorString('#8D6288').withAlpha(0.9),
+        '1960-1969': Cesium.Color.fromCssColorString('#7E5695').withAlpha(0.9),
+        '1970-1979': Cesium.Color.fromCssColorString('#6F4AA2').withAlpha(0.9),
+        '1980-1989': Cesium.Color.fromCssColorString('#603EAE').withAlpha(0.9),
+        '1990-1999': Cesium.Color.fromCssColorString('#5232BA').withAlpha(0.9),
+        '2000-2009': Cesium.Color.fromCssColorString('#4326C6').withAlpha(0.9),
+        '2010-2019': Cesium.Color.fromCssColorString('#341AD2').withAlpha(0.9),
+        '2020-2029': Cesium.Color.fromCssColorString('#9C27B0').withAlpha(0.9) 
+      };
 
     // Цвета для классификации по этажности
     const floorsColors = {
@@ -98,10 +98,13 @@ window.onload = function () {
         8: Cesium.Color.fromCssColorString('#FFA000').withAlpha(0.9),
         9: Cesium.Color.fromCssColorString('#FF8F00').withAlpha(0.9),
         10: Cesium.Color.fromCssColorString('#FF6F00').withAlpha(0.9),
-        '10+': Cesium.Color.fromCssColorString('#E65100').withAlpha(0.9)
+        '10+': Cesium.Color.fromCssColorString('#3F51B5').withAlpha(0.9)
     };
 
     const borderStrokeColor = Cesium.Color.fromCssColorString('#b3526c');
+    
+    // Белая заливка для границы (непрозрачная)
+    const borderFillColor = Cesium.Color.fromCssColorString('#FFFFFF').withAlpha(1);
 
     const layerVisibility = {
         рельеф: true,
@@ -110,7 +113,9 @@ window.onload = function () {
         дороги: true,
         здания: true,
         достопримечательности: true,
-        границаЛиния: true
+        границаЛиния: true,
+        границаЗаливка: true,
+        подписи: true
     };
 
     // Классификация зданий
@@ -122,6 +127,7 @@ window.onload = function () {
     };
 
     let buildingsDataSource = null;
+    let boundaryPolygonDataSource = null;
 
     // Функция получения цвета по десятилетию
     function getColorByDecade(year) {
@@ -267,6 +273,14 @@ window.onload = function () {
     function updateLayerVisibility() {
         updateReliefVisibility();
         
+       // Добавляем единое SVG-изображение с подписями САМЫМ ПОСЛЕДНИМ
+    addSingleSvgImage();
+        
+        // Обновляем видимость заливки границы
+        if (boundaryPolygonDataSource) {
+            boundaryPolygonDataSource.show = layerVisibility.границаЗаливка;
+        }
+        
         const dataSources = viewer.dataSources;
         for (let i = 0; i < dataSources.length; i++) {
             const ds = dataSources.get(i);
@@ -301,10 +315,15 @@ window.onload = function () {
                 dataSources.remove(ds);
             }
         }
+        if (boundaryPolygonDataSource) {
+            viewer.dataSources.remove(boundaryPolygonDataSource, false);
+            boundaryPolygonDataSource = null;
+        }
     }
 
     function loadMapFoundation() {
         clearMapLayers();
+
 
         // --- ПЛОЩАДНАЯ ГИДРОГРАФИЯ ---
         Cesium.GeoJsonDataSource.load(
@@ -494,7 +513,7 @@ window.onload = function () {
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
-        // --- ГРАНИЦА ---
+        // --- КРАСНАЯ ЛИНИЯ ГРАНИЦЫ ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Gran.geojson',
             {
@@ -518,13 +537,55 @@ window.onload = function () {
         }).catch(() => {});
     }
 
-    // --- КАРТОГРАФИЧЕСКИЕ ОСНОВЫ ---
+        // --- КАРТОГРАФИЧЕСКИЕ ОСНОВЫ ---
     const positronProvider = new Cesium.UrlTemplateImageryProvider({
         url: "https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
     });
     const googleSatelliteProvider = new Cesium.UrlTemplateImageryProvider({
         url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
     });
+
+       // ========== ОДНО БОЛЬШОЕ ИЗОБРАЖЕНИЕ С ПОДПИСЯМИ (ВМЕСТО ТАЙЛОВ) ==========
+    // Эти координаты нужно подобрать вручную, чтобы SVG лег на нужное место.
+    // Начните с центра вашей карты (85.9558, 51.9547) и регулируйте смещение.
+    const labelsImageProvider = {
+        url: 'https://raw.githubusercontent.com/ekrss04/Data-/main/Подписи.svg',
+        // Координаты центра изображения (долгота, широта, высота в метрах)
+        // Параметры width и height задают физический размер изображения на карте в метрах.
+        // Вам придется поиграть со значениями, чтобы изображение покрыло нужную область.
+        // Начните с width = 10000 (10 км) и height = 10000, затем подберите точнее.
+        widthInMeters: 12000,
+        heightInMeters: 12000,
+        longitude: 85.9558,
+        latitude: 51.9547,
+        height: 0
+    };
+    
+    // Функция для добавления этого изображения
+    function addSingleSvgImage() {
+        viewer.entities.add({
+            name: 'single_svg_labels',
+            position: Cesium.Cartesian3.fromDegrees(
+                labelsImageProvider.longitude, 
+                labelsImageProvider.latitude, 
+                labelsImageProvider.height
+            ),
+            billboard: {
+                image: labelsImageProvider.url,
+                width: labelsImageProvider.widthInMeters,
+                height: labelsImageProvider.heightInMeters,
+                // Располагаем изображение по центру
+                verticalOrigin: Cesium.VerticalOrigin.CENTER,
+                horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+                // Важно: отключаем проверку глубины, чтобы подписи были ПОВЕРХ всего
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                // Опционально: на каком расстоянии показывать подпись
+                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 15000)
+            }
+        });
+        console.log("✅ Единое SVG-изображение с подписями добавлено");
+    }
+    // ========== КОНЕЦ БЛОКА ==========
 
     const layers = [
         { name: "Картографическая основа", provider: positronProvider, onSelect: loadMapFoundation, hasRelief: true },
@@ -536,12 +597,21 @@ window.onload = function () {
 
     let currentLayerIndex = 0;
     
+    // ========== ПРАВИЛЬНЫЙ ПОРЯДОК СЛОЁВ ==========
+    // Слой 1: Картографическая основа (самый низ)
     viewer.imageryLayers.addImageryProvider(layers[currentLayerIndex].provider);
     
+    // Слой 2: Белая заливка (добавляется через loadMapFoundation, но она в dataSources, не в imageryLayers)
+    // Проблема в том, что заливка - это DataSource, а не ImageryLayer, поэтому она не должна перекрывать рельеф
+    
+    // Слой 3: Рельеф (добавляем ПЕРЕД загрузкой заливки)
     reliefLayer = viewer.imageryLayers.addImageryProvider(reliefProvider);
     reliefLayer.alpha = 0.5;
     
+    // Слой 4: Векторные данные (заливка, гидрография, дороги и т.д.) - они добавляются в loadMapFoundation
     loadMapFoundation();
+    
+
 
     // --- МАСШТАБНАЯ ЛИНЕЙКА ---
     const scaleContainer = document.createElement('div');
@@ -690,28 +760,15 @@ window.onload = function () {
                         </div>
                     </div>
                     <div id="section-decade" style="margin-left: 24px; margin-top: 6px; display: ${expandedSections.decade ? 'block' : 'none'};">
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px;">
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #8B0000; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1820-1829</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #B22222; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1830-1839</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #DC143C; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1840-1849</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FF4500; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1850-1859</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FF6347; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1860-1869</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFA500; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1870-1879</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFD700; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1880-1889</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFFF00; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1890-1899</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #ADFF2F; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1900-1909</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #7CFC00; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1910-1919</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #32CD32; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1920-1929</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #00FF7F; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1930-1939</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #00FA9A; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1940-1949</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #90EE90; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1950-1959</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #98FB98; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1960-1969</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #3CB371; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1970-1979</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #2E8B57; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1980-1989</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #228B22; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1990-1999</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #006400; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">2000-2009</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #008000; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">2010-2019</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #00FF00; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">2020-2029</span></div>
+                        <div style="display: flex; flex-direction: column; gap: 3px;">
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #440154; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1820-1829</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #3b528b; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1850-1859</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #26828e; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1880-1889</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #6cce5a; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1910-1919</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #e5e52e; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1920-1929</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #fd9e2c; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1960-1969</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #ed4d2e; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1980-1989</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #6e1025; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">2010-2019</span></div>
                         </div>
                     </div>
                 </div>
@@ -725,17 +782,12 @@ window.onload = function () {
                         </div>
                     </div>
                     <div id="section-floors" style="margin-left: 24px; margin-top: 6px; display: ${expandedSections.floors ? 'block' : 'none'};">
-                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px;">
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFFACD; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1 этаж</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFF59D; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">2 этажа</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFE082; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">3 этажа</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFD54F; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">4 этажа</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFCA28; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">5 этажей</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFC107; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">6 этажей</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFB300; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">7 этажей</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FFA000; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">8 этажей</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #FF8F00; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">9 этажей</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 16px; height: 16px; background: #E65100; margin-right: 8px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">10+ этажей</span></div>
+                        <div style="display: flex; flex-direction: column; gap: 3px;">
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #FFFACD; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>1 этаж</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #FFE082; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>3 этажа</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #FFC107; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>6 этажей</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #FF8F00; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>9 этажей</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #3F51B5; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>10+ этажей</span></div>
                         </div>
                     </div>
                 </div>
@@ -753,7 +805,7 @@ window.onload = function () {
                 </div>
                 <div style="display: flex; align-items: center; padding-left: 12px;">
                     <div style="width: 30px; height: 20px; background: linear-gradient(135deg, #8B7355 0%, #D2B48C 50%, #F5DEB3 100%); margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div>
-                    <span>Отмывка рельефа</span>
+                    <span>Рельеф</span>
                 </div>
             </div>
 
@@ -792,15 +844,24 @@ window.onload = function () {
                     <div style="font-weight: bold; color: #333; font-size: 14px;">ГРАНИЦА</div>
                     <button class="toggle-layer" data-layer="границаЛиния" style="background: ${layerVisibility.границаЛиния ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.границаЛиния ? '✓' : '✗'}</button>
                 </div>
-                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #b3526c; margin-right: 10px; border-radius: 2px;"></div><span>Граница Горно-Алтайска</span></div>
+                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 20px; background: #FFFFFF; margin-right: 10px; border-radius: 3px; border: 1px solid #ccc;"></div><span>Заливка территории</span></div>
+                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #b3526c; margin-right: 10px; border-radius: 2px;"></div><span>Граница города</span></div>
             </div>
 
-            <div style="margin-bottom: 10px;">
+            <div style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <div style="font-weight: bold; color: #333; font-size: 14px;">3D МОДЕЛИ</div>
                     <button class="toggle-layer" data-layer="достопримечательности" style="background: ${layerVisibility.достопримечательности ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.достопримечательности ? '✓' : '✗'}</button>
                 </div>
-                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 20px; height: 20px; background: #d4a373; margin-right: 10px; border-radius: 3px; border: 1px solid #a07453;"></div><span>Исторические здания</span></div>
+                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 20px; height: 20px; background: #d4a373; margin-right: 10px; border-radius: 3px; border: 1px solid #a07453;"></div><span>3D модели</span></div>
+            </div>
+
+            <div style="margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <div style="font-weight: bold; color: #333; font-size: 14px;">НАДПИСИ</div>
+                    <button class="toggle-layer" data-layer="подписи" style="background: ${layerVisibility.подписи ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.подписи ? '✓' : '✗'}</button>
+                </div>
+                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 20px; background: #E8E8E8; margin-right: 10px; border-radius: 3px; border: 1px solid #999;"><span style="display:block; text-align:center; font-size:10px; line-height:20px;">Aa</span></div><span>Надписи</span></div>
             </div>
         `;
 
@@ -911,6 +972,12 @@ window.onload = function () {
                 reliefLayer.show = layerVisibility.рельеф;
             } else if (reliefLayer) {
                 reliefLayer.show = false;
+            }
+            
+            // При смене основы добавляем слой подписей поверх
+            if (labelsLayer) {
+                viewer.imageryLayers.add(labelsLayer);
+                labelsLayer.show = layerVisibility.подписи;
             }
             
             currentLayerIndex = index;
@@ -1090,17 +1157,17 @@ window.onload = function () {
     addModel("Администрация", "https://raw.githubusercontent.com/ekrss04/Data-/main/Администрация.glb", 85.9602147, 51.9592017, 90.073, 0.615, 1985);
     addModel("Лавка купца Тобокова", "https://raw.githubusercontent.com/ekrss04/Data-/main/Лавка%20Тобокова.glb", 85.9653642, 51.9520659, -81.488, 0.61, 1887);
 
-    // ========== МАРКЕР ==========
-    function getCitySvgByYear(currentTime) {
+           // ========== НАДПИСЬ НАЗВАНИЯ ГОРОДА ==========
+    function getCityNameByYear(currentTime) {
         const date = Cesium.JulianDate.toDate(currentTime);
         const year = date.getUTCFullYear();
         
         if (year < 1932) {
-            return 'https://raw.githubusercontent.com/ekrss04/Data-/main/visual/Улала.svg';
+            return 'Улала';
         } else if (year >= 1932 && year < 1948) {
-            return 'https://raw.githubusercontent.com/ekrss04/Data-/main/visual/Ойрот-Тура.svg';
+            return 'Ойрот-Тура';
         } else {
-            return 'https://raw.githubusercontent.com/ekrss04/Data-/main/visual/Горно-Алтайск.svg';
+            return 'Горно-Алтайск';
         }
     }
 
@@ -1111,28 +1178,33 @@ window.onload = function () {
         const markerEntity = viewer.entities.add({
             name: 'city_name_marker',
             position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 0),
-            billboard: {
-                image: getCitySvgByYear(viewer.clock.currentTime),
-                width: 120,
-                height: 40,
+            label: {
+                text: getCityNameByYear(viewer.clock.currentTime),
+                font: 'bold 22px "Segoe UI", "Roboto", "Open Sans", Arial, sans-serif',
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                fillColor: Cesium.Color.fromCssColorString('#2C3E50'),
+                outlineColor: Cesium.Color.fromCssColorString('#FFFFFF'),
+                outlineWidth: 3,
+                showBackground: false,
                 verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                 horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-                scale: 1.0,
+                pixelOffset: new Cesium.Cartesian2(0, -15),
                 disableDepthTestDistance: Number.POSITIVE_INFINITY,
-                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 10000)
+                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 10000),
+                scale: 1.0
             }
         });
         
         viewer.clock.onTick.addEventListener(function(clock) {
-            const newImage = getCitySvgByYear(clock.currentTime);
-            if (markerEntity.billboard.image !== newImage) {
-                markerEntity.billboard.image = newImage;
+            const newText = getCityNameByYear(clock.currentTime);
+            if (markerEntity.label.text !== newText) {
+                markerEntity.label.text = newText;
             }
         });
     }
 
     addCityNameMarker();
-    // ========== КОНЕЦ МАРКЕРА ==========
+    // ========== КОНЕЦ НАДПИСИ ==========
 
     // --- Кнопки UI ---
     const btnHome = document.getElementById("btnHome");
@@ -1301,16 +1373,39 @@ window.onload = function () {
         overlay.addEventListener('click', () => document.body.removeChild(overlay));
     }
 
-    // --- Модальные окна ---
+            // --- Модальные окна ---
     let currentModal = null;
 
     function openModal(id) {
         if (currentModal) currentModal.style.display = 'none';
         const m = document.getElementById(id);
         if (m) {
+            // Проверяем, добавлена ли ссылка (чтобы не дублировать)
+            if (!m.querySelector('.archive-link')) {
+                // Создаём ссылку в левом верхнем углу
+                const link = document.createElement('a');
+                link.className = 'archive-link';
+                link.href = 'https://ekrss04.github.io/Gorno-Altaisk-website/#archive-photos';
+                link.target = '_blank';
+                link.style.cssText = `
+                    position: absolute;
+                    top: 23px;
+                    left: 30px;
+                    color: #fadadd;
+                    text-decoration: underline;
+                    font-size: 14px;
+                    font-weight: normal;
+                    font-family: 'Noah', Arial, sans-serif;
+                    font-weight: normal;
+                    cursor: pointer;
+                    background: transparent;
+                    z-index: 10;
+                `;
+                link.innerHTML = 'Больше фотографий';
+                m.appendChild(link);
+            }
             m.style.display = 'block';
             currentModal = m;
-            m.querySelector('.modal-description')?.scrollTo(0, 0);
         }
     }
 
@@ -1343,7 +1438,6 @@ window.onload = function () {
         e.stopPropagation();
         enlargePhoto(i.src, i.alt);
     }));
-
     // --- Попапы ---
     let currentPopup = null;
 

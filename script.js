@@ -44,8 +44,8 @@ window.onload = function () {
     viewer.imageryLayers.removeAll();
 
     // --- Цвета для слоев карты ---
-    const waterColor = Cesium.Color.fromCssColorString('#ace7f2');
-    const waterAreaColor = Cesium.Color.fromCssColorString('#ace7f2').withAlpha(1);
+    const waterColor = Cesium.Color.fromCssColorString('#77b1ea');
+    const waterAreaColor = Cesium.Color.fromCssColorString('#77b1ea').withAlpha(1);
     const forestColor = Cesium.Color.fromCssColorString('#77d496').withAlpha(0.3);
     const parkColor = Cesium.Color.fromCssColorString('#86c882').withAlpha(0.5);
 
@@ -61,9 +61,9 @@ window.onload = function () {
     const buildingIndustrialColor = Cesium.Color.fromCssColorString('#909090').withAlpha(0.9);
     const buildingOtherColor = Cesium.Color.fromCssColorString('#C0C0C0').withAlpha(0.9);
 
-    // Цвета для классификации по десятилетиям (градиент от фиолетового к красному)
+    // Цвета для классификации по десятилетиям
     const decadeColors = {
-        '1820-1829': Cesium.Color.fromCssColorString('#FFF176').withAlpha(0.9), // светло-жёлтый
+        '1820-1829': Cesium.Color.fromCssColorString('#FFF176').withAlpha(0.9),
         '1830-1839': Cesium.Color.fromCssColorString('#FFE082').withAlpha(0.9),
         '1840-1849': Cesium.Color.fromCssColorString('#FFD54F').withAlpha(0.9),
         '1850-1859': Cesium.Color.fromCssColorString('#FFCA28').withAlpha(0.9),
@@ -84,7 +84,7 @@ window.onload = function () {
         '2000-2009': Cesium.Color.fromCssColorString('#4326C6').withAlpha(0.9),
         '2010-2019': Cesium.Color.fromCssColorString('#341AD2').withAlpha(0.9),
         '2020-2029': Cesium.Color.fromCssColorString('#9C27B0').withAlpha(0.9) 
-      };
+    };
 
     // Цвета для классификации по этажности
     const floorsColors = {
@@ -102,9 +102,6 @@ window.onload = function () {
     };
 
     const borderStrokeColor = Cesium.Color.fromCssColorString('#b3526c');
-    
-    // Белая заливка для границы (непрозрачная)
-    const borderFillColor = Cesium.Color.fromCssColorString('#FFFFFF').withAlpha(1);
 
     const layerVisibility = {
         рельеф: true,
@@ -113,9 +110,7 @@ window.onload = function () {
         дороги: true,
         здания: true,
         достопримечательности: true,
-        границаЛиния: true,
-        границаЗаливка: true,
-        подписи: true
+        границаЛиния: true
     };
 
     // Классификация зданий
@@ -127,7 +122,6 @@ window.onload = function () {
     };
 
     let buildingsDataSource = null;
-    let boundaryPolygonDataSource = null;
 
     // Функция получения цвета по десятилетию
     function getColorByDecade(year) {
@@ -273,14 +267,6 @@ window.onload = function () {
     function updateLayerVisibility() {
         updateReliefVisibility();
         
-       // Добавляем единое SVG-изображение с подписями САМЫМ ПОСЛЕДНИМ
-    addSingleSvgImage();
-        
-        // Обновляем видимость заливки границы
-        if (boundaryPolygonDataSource) {
-            boundaryPolygonDataSource.show = layerVisibility.границаЗаливка;
-        }
-        
         const dataSources = viewer.dataSources;
         for (let i = 0; i < dataSources.length; i++) {
             const ds = dataSources.get(i);
@@ -315,15 +301,14 @@ window.onload = function () {
                 dataSources.remove(ds);
             }
         }
-        if (boundaryPolygonDataSource) {
-            viewer.dataSources.remove(boundaryPolygonDataSource, false);
-            boundaryPolygonDataSource = null;
-        }
     }
+
+    // --- Таймлайн и анимация  ---
+    const startTime = Cesium.JulianDate.fromIso8601("1834-01-01T00:00:00Z");
+    const stopTime = Cesium.JulianDate.fromIso8601("2027-01-01T00:00:00Z");
 
     function loadMapFoundation() {
         clearMapLayers();
-
 
         // --- ПЛОЩАДНАЯ ГИДРОГРАФИЯ ---
         Cesium.GeoJsonDataSource.load(
@@ -350,32 +335,44 @@ window.onload = function () {
         }).catch(() => {});
 
         // --- ЛИНЕЙНАЯ ГИДРОГРАФИЯ ---
-        Cesium.GeoJsonDataSource.load(
-            'https://raw.githubusercontent.com/ekrss04/Data-/main/Gidrigraf_2.geojson',
-            {
-                stroke: waterColor,
-                strokeWidth: 3,
-                clampToGround: true
-            }
-        ).then(dataSource => {
-            dataSource.name = 'Гидрография линейная';
-            dataSource.show = layerVisibility.гидрография;
+       // --- ЛИНЕЙНАЯ ГИДРОГРАФИЯ С ШИРИНОЙ 5 МЕТРОВ ---
+Cesium.GeoJsonDataSource.load(
+    'https://raw.githubusercontent.com/ekrss04/Data-/main/Gidrigraf_2.geojson',
+    {
+        clampToGround: true
+    }
+).then(dataSource => {
+    dataSource.name = 'Гидрография линейная';
+    dataSource.show = layerVisibility.гидрография;
 
-            const entities = dataSource.entities.values;
-            entities.forEach(entity => {
-                if (entity.polyline) {
-                    entity.polyline.material = waterColor;
-                    entity.polyline.width = 3;
-                    if (entity.properties) {
-                        const props = entity.properties.getValue(Cesium.JulianDate.now());
-                        const name = props['Название'] || props['name'] || '';
-                        entity._name = name;
-                        entity.properties = undefined;
-                    }
-                }
-            });
-            viewer.dataSources.add(dataSource);
-        }).catch(() => {});
+    const entities = dataSource.entities.values;
+    entities.forEach(entity => {
+        if (entity.polyline && entity.properties) {
+            const props = entity.properties.getValue(Cesium.JulianDate.now());
+            const name = props['Название'] || props['name'] || '';
+            const positions = entity.polyline.positions.getValue(Cesium.JulianDate.now());
+            
+            if (positions && positions.length >= 2) {
+                // Удаляем старую polyline
+                entity.polyline = undefined;
+                
+                // Создаём corridor (ширина в метрах)
+                entity.corridor = {
+                    positions: positions,
+                    width: 4,  
+                    material: waterColor,
+                    height: 0,
+                    extrudedHeight: 0,  
+                    cornerType: Cesium.CornerType.ROUNDED
+                };
+                entity._name = name;
+                entity.properties = undefined;
+            }
+        }
+    });
+    
+    viewer.dataSources.add(dataSource);
+}).catch(() => {});
 
         // --- Леса ---
         Cesium.GeoJsonDataSource.load(
@@ -428,7 +425,7 @@ window.onload = function () {
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
-        // --- ДОРОГИ (CORRIDOR) ---
+        // --- ДОРОГИ (с привязкой к анимации по полю "1") ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Dorogi.geojson',
             {
@@ -445,13 +442,15 @@ window.onload = function () {
                     const props = entity.properties.getValue(Cesium.JulianDate.now());
                     const roadClass = props['Класс'] || props['класс'] || props['CLASS'] || '';
                     const positions = entity.polyline.positions.getValue(Cesium.JulianDate.now());
-                    
                     const roadName = props['name'] || props['Name'] || '';
+                    const startYear = props['1'];
                     const classStr = String(roadClass).trim();
 
                     if (positions) {
+                        let corridorConfig = null;
+                        
                         if (classStr === '1' || classStr === 'Главные' || classStr === 'главные') {
-                            newEntities.push({
+                            corridorConfig = {
                                 corridor: {
                                     positions: positions,
                                     width: 12,
@@ -461,21 +460,10 @@ window.onload = function () {
                                     cornerType: Cesium.CornerType.ROUNDED
                                 },
                                 _name: roadName
-                            });
-                            newEntities.push({
-                                corridor: {
-                                    positions: positions,
-                                    width: 8,
-                                    material: roadMainTopColor,
-                                    height: 0.2,
-                                    extrudedHeight: 0.4,
-                                    cornerType: Cesium.CornerType.ROUNDED
-                                },
-                                _name: roadName
-                            });
+                            };
                         } 
                         else if (classStr === '2' || classStr === 'Прочие' || classStr === 'прочие') {
-                            newEntities.push({
+                            corridorConfig = {
                                 corridor: {
                                     positions: positions,
                                     width: 8,
@@ -485,10 +473,10 @@ window.onload = function () {
                                     cornerType: Cesium.CornerType.ROUNDED
                                 },
                                 _name: roadName
-                            });
+                            };
                         } 
                         else {
-                            newEntities.push({
+                            corridorConfig = {
                                 corridor: {
                                     positions: positions,
                                     width: 5,
@@ -498,7 +486,49 @@ window.onload = function () {
                                     cornerType: Cesium.CornerType.ROUNDED
                                 },
                                 _name: roadName
-                            });
+                            };
+                        }
+                        
+                        // Добавляем временную привязку, если указан год появления
+                        if (corridorConfig && startYear && !isNaN(parseInt(startYear))) {
+                            const year = parseInt(startYear);
+                            const startDate = Cesium.JulianDate.fromIso8601(`${year}-01-01T00:00:00Z`);
+                            corridorConfig.availability = new Cesium.TimeIntervalCollection([
+                                new Cesium.TimeInterval({
+                                    start: startDate,
+                                    stop: stopTime.clone()
+                                })
+                            ]);
+                        }
+                        
+                        if (corridorConfig) {
+                            newEntities.push(corridorConfig);
+                        }
+                        
+                        // Для главных дорог добавляем второй слой
+                        if (classStr === '1' || classStr === 'Главные' || classStr === 'главные') {
+                            const topLayerConfig = {
+                                corridor: {
+                                    positions: positions,
+                                    width: 8,
+                                    material: roadMainTopColor,
+                                    height: 0.2,
+                                    extrudedHeight: 0.4,
+                                    cornerType: Cesium.CornerType.ROUNDED
+                                },
+                                _name: roadName
+                            };
+                            if (startYear && !isNaN(parseInt(startYear))) {
+                                const year = parseInt(startYear);
+                                const startDate = Cesium.JulianDate.fromIso8601(`${year}-01-01T00:00:00Z`);
+                                topLayerConfig.availability = new Cesium.TimeIntervalCollection([
+                                    new Cesium.TimeInterval({
+                                        start: startDate,
+                                        stop: stopTime.clone()
+                                    })
+                                ]);
+                            }
+                            newEntities.push(topLayerConfig);
                         }
                     }
                 }
@@ -513,7 +543,7 @@ window.onload = function () {
             viewer.dataSources.add(dataSource);
         }).catch(() => {});
 
-        // --- КРАСНАЯ ЛИНИЯ ГРАНИЦЫ ---
+        // --- ГРАНИЦА (с привязкой к анимации по полям "1" и "2") ---
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Gran.geojson',
             {
@@ -529,7 +559,28 @@ window.onload = function () {
             
             const entities = dataSource.entities.values;
             entities.forEach(entity => {
-                if (entity.polyline) {
+                if (entity.polyline && entity.properties) {
+                    const props = entity.properties.getValue(Cesium.JulianDate.now());
+                    const startYear = props['1'];
+                    const endYear = props['2'];
+                    
+                    if (startYear && !isNaN(parseInt(startYear))) {
+                        const startDate = Cesium.JulianDate.fromIso8601(`${parseInt(startYear)}-01-01T00:00:00Z`);
+                        let endDate = stopTime.clone();
+                        
+                        if (endYear && !isNaN(parseInt(endYear))) {
+                            endDate = Cesium.JulianDate.fromIso8601(`${parseInt(endYear)}-01-01T00:00:00Z`);
+                        }
+                        
+                        entity.availability = new Cesium.TimeIntervalCollection([
+                            new Cesium.TimeInterval({
+                                start: startDate,
+                                stop: endDate
+                            })
+                        ]);
+                    }
+                    entity.properties = undefined;
+                } else if (entity.polyline) {
                     entity.properties = undefined;
                 }
             });
@@ -537,55 +588,13 @@ window.onload = function () {
         }).catch(() => {});
     }
 
-        // --- КАРТОГРАФИЧЕСКИЕ ОСНОВЫ ---
+    // --- КАРТОГРАФИЧЕСКИЕ ОСНОВЫ ---
     const positronProvider = new Cesium.UrlTemplateImageryProvider({
         url: "https://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png"
     });
     const googleSatelliteProvider = new Cesium.UrlTemplateImageryProvider({
         url: "https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
     });
-
-       // ========== ОДНО БОЛЬШОЕ ИЗОБРАЖЕНИЕ С ПОДПИСЯМИ (ВМЕСТО ТАЙЛОВ) ==========
-    // Эти координаты нужно подобрать вручную, чтобы SVG лег на нужное место.
-    // Начните с центра вашей карты (85.9558, 51.9547) и регулируйте смещение.
-    const labelsImageProvider = {
-        url: 'https://raw.githubusercontent.com/ekrss04/Data-/main/Подписи.svg',
-        // Координаты центра изображения (долгота, широта, высота в метрах)
-        // Параметры width и height задают физический размер изображения на карте в метрах.
-        // Вам придется поиграть со значениями, чтобы изображение покрыло нужную область.
-        // Начните с width = 10000 (10 км) и height = 10000, затем подберите точнее.
-        widthInMeters: 12000,
-        heightInMeters: 12000,
-        longitude: 85.9558,
-        latitude: 51.9547,
-        height: 0
-    };
-    
-    // Функция для добавления этого изображения
-    function addSingleSvgImage() {
-        viewer.entities.add({
-            name: 'single_svg_labels',
-            position: Cesium.Cartesian3.fromDegrees(
-                labelsImageProvider.longitude, 
-                labelsImageProvider.latitude, 
-                labelsImageProvider.height
-            ),
-            billboard: {
-                image: labelsImageProvider.url,
-                width: labelsImageProvider.widthInMeters,
-                height: labelsImageProvider.heightInMeters,
-                // Располагаем изображение по центру
-                verticalOrigin: Cesium.VerticalOrigin.CENTER,
-                horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-                // Важно: отключаем проверку глубины, чтобы подписи были ПОВЕРХ всего
-                disableDepthTestDistance: Number.POSITIVE_INFINITY,
-                // Опционально: на каком расстоянии показывать подпись
-                distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 15000)
-            }
-        });
-        console.log("✅ Единое SVG-изображение с подписями добавлено");
-    }
-    // ========== КОНЕЦ БЛОКА ==========
 
     const layers = [
         { name: "Картографическая основа", provider: positronProvider, onSelect: loadMapFoundation, hasRelief: true },
@@ -597,21 +606,31 @@ window.onload = function () {
 
     let currentLayerIndex = 0;
     
-    // ========== ПРАВИЛЬНЫЙ ПОРЯДОК СЛОЁВ ==========
-    // Слой 1: Картографическая основа (самый низ)
+    // Картографическая основа
     viewer.imageryLayers.addImageryProvider(layers[currentLayerIndex].provider);
     
-    // Слой 2: Белая заливка (добавляется через loadMapFoundation, но она в dataSources, не в imageryLayers)
-    // Проблема в том, что заливка - это DataSource, а не ImageryLayer, поэтому она не должна перекрывать рельеф
-    
-    // Слой 3: Рельеф (добавляем ПЕРЕД загрузкой заливки)
+    // Рельеф
     reliefLayer = viewer.imageryLayers.addImageryProvider(reliefProvider);
     reliefLayer.alpha = 0.5;
     
-    // Слой 4: Векторные данные (заливка, гидрография, дороги и т.д.) - они добавляются в loadMapFoundation
+    // Векторные данные
     loadMapFoundation();
-    
 
+    // --- Таймлайн и анимация ---
+    viewer.clock.startTime = startTime.clone();
+    viewer.clock.stopTime = stopTime.clone();
+    viewer.clock.currentTime = Cesium.JulianDate.now();
+    viewer.clock.multiplier = 1000000;
+    viewer.clock.shouldAnimate = false;
+    viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER;
+
+    viewer.timeline.makeLabel = function(time) {
+        return Cesium.JulianDate.toDate(time).getUTCFullYear().toString();
+    };
+
+    setTimeout(() => {
+        viewer.timeline.zoomTo(startTime, stopTime);
+    }, 300);
 
     // --- МАСШТАБНАЯ ЛИНЕЙКА ---
     const scaleContainer = document.createElement('div');
@@ -814,8 +833,8 @@ window.onload = function () {
                     <div style="font-weight: bold; color: #333; font-size: 14px;">ГИДРОГРАФИЯ</div>
                     <button class="toggle-layer" data-layer="гидрография" style="background: ${layerVisibility.гидрография ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.гидрография ? '✓' : '✗'}</button>
                 </div>
-                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #ace7f2; margin-right: 10px; border-radius: 2px;"></div><span>Линейная гидрография</span></div>
-                <div style="display: flex; align-items: center; padding-left: 12px; margin-top: 6px;"><div style="width: 30px; height: 20px; background: #ace7f2; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9aa0;"></div><span>Площадная гидрография</span></div>
+                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #77b1ea; margin-right: 10px; border-radius: 2px;"></div><span>Линейная гидрография</span></div>
+                <div style="display: flex; align-items: center; padding-left: 12px; margin-top: 6px;"><div style="width: 30px; height: 20px; background: #77b1ea; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9aa0;"></div><span>Площадная гидрография</span></div>
             </div>
 
             <div style="margin-bottom: 16px;">
@@ -844,7 +863,6 @@ window.onload = function () {
                     <div style="font-weight: bold; color: #333; font-size: 14px;">ГРАНИЦА</div>
                     <button class="toggle-layer" data-layer="границаЛиния" style="background: ${layerVisibility.границаЛиния ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.границаЛиния ? '✓' : '✗'}</button>
                 </div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 20px; background: #FFFFFF; margin-right: 10px; border-radius: 3px; border: 1px solid #ccc;"></div><span>Заливка территории</span></div>
                 <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #b3526c; margin-right: 10px; border-radius: 2px;"></div><span>Граница города</span></div>
             </div>
 
@@ -854,14 +872,6 @@ window.onload = function () {
                     <button class="toggle-layer" data-layer="достопримечательности" style="background: ${layerVisibility.достопримечательности ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.достопримечательности ? '✓' : '✗'}</button>
                 </div>
                 <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 20px; height: 20px; background: #d4a373; margin-right: 10px; border-radius: 3px; border: 1px solid #a07453;"></div><span>3D модели</span></div>
-            </div>
-
-            <div style="margin-bottom: 10px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <div style="font-weight: bold; color: #333; font-size: 14px;">НАДПИСИ</div>
-                    <button class="toggle-layer" data-layer="подписи" style="background: ${layerVisibility.подписи ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.подписи ? '✓' : '✗'}</button>
-                </div>
-                <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 20px; background: #E8E8E8; margin-right: 10px; border-radius: 3px; border: 1px solid #999;"><span style="display:block; text-align:center; font-size:10px; line-height:20px;">Aa</span></div><span>Надписи</span></div>
             </div>
         `;
 
@@ -974,12 +984,6 @@ window.onload = function () {
                 reliefLayer.show = false;
             }
             
-            // При смене основы добавляем слой подписей поверх
-            if (labelsLayer) {
-                viewer.imageryLayers.add(labelsLayer);
-                labelsLayer.show = layerVisibility.подписи;
-            }
-            
             currentLayerIndex = index;
             updateLayersMenu();
             layersMenu.style.display = 'none';
@@ -1035,25 +1039,6 @@ window.onload = function () {
         });
         commandInfo.cancel = true;
     });
-
-    // --- Таймлайн и анимация ---
-    const startTime = Cesium.JulianDate.fromIso8601("1834-01-01T00:00:00Z");
-    const stopTime = Cesium.JulianDate.fromIso8601("2027-01-01T00:00:00Z");
-
-    viewer.clock.startTime = startTime.clone();
-    viewer.clock.stopTime = stopTime.clone();
-    viewer.clock.currentTime = Cesium.JulianDate.now();
-    viewer.clock.multiplier = 1000000;
-    viewer.clock.shouldAnimate = false;
-    viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER;
-
-    viewer.timeline.makeLabel = function(time) {
-        return Cesium.JulianDate.toDate(time).getUTCFullYear().toString();
-    };
-
-    setTimeout(() => {
-        viewer.timeline.zoomTo(startTime, stopTime);
-    }, 300);
 
     // --- Здания ---
     if (!buildingsDataSource) {
@@ -1157,7 +1142,7 @@ window.onload = function () {
     addModel("Администрация", "https://raw.githubusercontent.com/ekrss04/Data-/main/Администрация.glb", 85.9602147, 51.9592017, 90.073, 0.615, 1985);
     addModel("Лавка купца Тобокова", "https://raw.githubusercontent.com/ekrss04/Data-/main/Лавка%20Тобокова.glb", 85.9653642, 51.9520659, -81.488, 0.61, 1887);
 
-           // ========== НАДПИСЬ НАЗВАНИЯ ГОРОДА ==========
+    // ========== НАДПИСЬ НАЗВАНИЯ ГОРОДА ==========
     function getCityNameByYear(currentTime) {
         const date = Cesium.JulianDate.toDate(currentTime);
         const year = date.getUTCFullYear();
@@ -1177,7 +1162,7 @@ window.onload = function () {
         
         const markerEntity = viewer.entities.add({
             name: 'city_name_marker',
-            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 0),
+            position: Cesium.Cartesian3.fromDegrees(longitude, latitude, 8),
             label: {
                 text: getCityNameByYear(viewer.clock.currentTime),
                 font: 'bold 22px "Segoe UI", "Roboto", "Open Sans", Arial, sans-serif',
@@ -1373,16 +1358,14 @@ window.onload = function () {
         overlay.addEventListener('click', () => document.body.removeChild(overlay));
     }
 
-            // --- Модальные окна ---
+    // --- Модальные окна ---
     let currentModal = null;
 
     function openModal(id) {
         if (currentModal) currentModal.style.display = 'none';
         const m = document.getElementById(id);
         if (m) {
-            // Проверяем, добавлена ли ссылка (чтобы не дублировать)
             if (!m.querySelector('.archive-link')) {
-                // Создаём ссылку в левом верхнем углу
                 const link = document.createElement('a');
                 link.className = 'archive-link';
                 link.href = 'https://ekrss04.github.io/Gorno-Altaisk-website/#archive-photos';
@@ -1396,7 +1379,6 @@ window.onload = function () {
                     font-size: 14px;
                     font-weight: normal;
                     font-family: 'Noah', Arial, sans-serif;
-                    font-weight: normal;
                     cursor: pointer;
                     background: transparent;
                     z-index: 10;
@@ -1438,6 +1420,7 @@ window.onload = function () {
         e.stopPropagation();
         enlargePhoto(i.src, i.alt);
     }));
+
     // --- Попапы ---
     let currentPopup = null;
 

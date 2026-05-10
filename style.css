@@ -981,4 +981,228 @@ html, body {
   .ui-btn:active {
     transform: scale(0.95);
   }
+
+  /* =========================================================
+     МОБИЛЬНАЯ АДАПТАЦИЯ
+     НЕ ТРОГАЕТ DESKTOP
+  ========================================================= */
+  /* =========================================================
+     LANDSCAPE PHONE
+  ========================================================= */
+}
+@media (hover: none) and (pointer: coarse) and (max-width: 768px) {
+  /* ===== Верхняя панель ===== */
+  #ui {
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 72px;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+    background: rgba(15, 15, 15, 0.96);
+    backdrop-filter: blur(12px);
+    z-index: 3000;
+  }
+
+  .ui-btn {
+    width: 100%;
+    height: 72px;
+    border-radius: 0;
+    background-size: 42px 42px;
+    background-position: center;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .ui-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* ===== Карта ===== */
+  #cesiumContainer {
+    height: 100%;
+  }
+
+  /* ===== Убираем нижний title ===== */
+  #mapTitleContainer {
+    display: none;
+  }
+
+  /* ===== Timeline ===== */
+  #timelineContainer {
+    bottom: 0;
+    height: 70px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    background: rgba(20, 20, 20, 0.96);
+    z-index: 2500;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #timelineContainer::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  #timelineContainer::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+  }
+
+  #timelineSVG {
+    width: 1400px;
+    min-width: 1400px;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .period-btn {
+    height: 100%;
+  }
+
+  /* ===== Player ===== */
+  #customPlayer {
+    bottom: 85px;
+    left: 12px;
+    width: 250px;
+    height: 64px;
+    z-index: 3500;
+  }
+
+  /* ===== Tooltip ===== */
+  #dynamicTooltip {
+    font-size: 18px;
+    padding: 10px 14px;
+  }
+
+  /* ===== Модальные окна периодов ===== */
+  .period-modal {
+    top: 80px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    height: auto;
+    max-height: 78vh;
+    z-index: 5000;
+  }
+
+  .modal-content {
+    padding: 18px;
+  }
+
+  .modal-title {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+
+  .modal-description {
+    font-size: 15px;
+    line-height: 1.6;
+    max-width: 100%;
+  }
+
+  .images-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .period-modal .modal-image {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+  }
+
+  .image-caption {
+    max-width: 100%;
+    font-size: 13px;
+    height: auto;
+  }
+
+  /* ===== Popup зданий ===== */
+  .building-popup {
+    left: 10px;
+    right: 10px;
+    width: auto;
+    bottom: 85px;
+    top: auto;
+    height: auto;
+    max-height: 55vh;
+  }
+
+  /* ===== Popup моделей ===== */
+  .model-popup {
+    left: 10px;
+    right: 10px;
+    width: auto;
+    bottom: 85px;
+    top: auto;
+    height: auto;
+    max-height: 72vh;
+  }
+
+  .model-popup .popup-content,
+.building-popup .popup-content {
+    padding: 24px;
+  }
+
+  .popup-title {
+    font-size: 24px;
+    margin-bottom: 14px;
+  }
+
+  .popup-description {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .model-popup .popup-image {
+    max-width: 100%;
+    max-height: 260px;
+    border-radius: 12px;
+  }
+
+  /* ===== Кнопка закрытия ===== */
+  .popup-close,
+.close-modal {
+    width: 42px;
+    height: 42px;
+    font-size: 34px;
+  }
+
+  /* ===== Легенда ===== */
+  .legend-container {
+    top: 80px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    min-width: auto;
+    max-height: 75vh;
+    font-size: 14px;
+    z-index: 4000;
+  }
+}
+@media (hover: none) and (pointer: coarse) and (max-width: 768px) and (orientation: landscape) {
+  #ui {
+    height: 58px;
+  }
+
+  .ui-btn {
+    height: 58px;
+    background-size: 34px 34px;
+  }
+
+  #customPlayer {
+    width: 210px;
+    height: 52px;
+    bottom: 70px;
+  }
+
+  #timelineContainer {
+    height: 52px;
+  }
+
+  .period-modal {
+    max-height: 82vh;
+  }
 }

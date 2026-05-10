@@ -1537,35 +1537,7 @@ Cesium.GeoJsonDataSource.load(
         document.querySelectorAll('.popup-container').forEach(p => p.style.display = 'none');
         currentPopup = null;
     }
-const mobileMenu = document.getElementById("mobileMenu");
-const btnMenu = document.getElementById("btnMenu");
-const closeMobileMenu = document.getElementById("closeMobileMenu");
 
-btnMenu.addEventListener("click", () => {
-  mobileMenu.classList.add("active");
-});
-
-closeMobileMenu.addEventListener("click", () => {
-  mobileMenu.classList.remove("active");
-});
-
-document.querySelectorAll(".mobilePeriod").forEach(item => {
-
-  item.addEventListener("click", () => {
-
-    mobileMenu.classList.remove("active");
-
-    const modalId = item.dataset.modal;
-
-    const modal = document.getElementById(modalId);
-
-    if (modal) {
-      modal.style.display = "block";
-    }
-
-  });
-
-});
     // Обработчик кликов
     viewer.screenSpaceEventHandler.setInputAction(function(m) {
         const pickedObject = viewer.scene.pick(m.position);

@@ -9,15 +9,8 @@
   </head>
     
   <body>
-  <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdn.jsdelivr.net/gh/ekrss04/Data-/cityNames.js"></script>
-</head>
-<body>
-<div id="cesiumContainer"></div>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <div id="cesiumContainer"></div>
+
 <!-- Подключаем внешний JS файл -->
 <script src="https://cdn.jsdelivr.net/gh/ekrss04/Data-/cityNames.js"></script>
 
@@ -48,7 +41,6 @@
   <div id="btnHome" class="ui-btn"></div>
   <div id="btnLayers" class="ui-btn"></div>
   <div id="btnWalk" class="ui-btn"></div>
-  <div id="btnMenu" class="ui-btn"></div>
 </div>
 
 <!-- ОКНА ИСТОРИЧЕСКИХ ПЕРИОДОВ -->
@@ -178,53 +170,17 @@
 <!-- ВСПЛЫВАЮЩЕЕ ОКНО ДЛЯ МОДЕЛЕЙ -->
 <div id="modelPopup" class="popup-container model-popup">
   <div class="popup-bg-wrapper">
-
-    <img src="https://raw.githubusercontent.com/ekrss04/Data-/main/visual/popup_1.svg"
-         alt="Фон всплывающего окна"
+    <img src="https://raw.githubusercontent.com/ekrss04/Data-/main/visual/popup_1.svg" 
+         alt="Фон всплывающего окна" 
          class="popup-bg">
-
+    
     <div class="popup-content">
-
       <span class="popup-close">&times;</span>
-
       <h3 id="modelTitle" class="popup-title"></h3>
-
       <div id="modelDescription" class="popup-description"></div>
-
       <div id="modelImageContainer" class="popup-image-container">
         <img id="modelImage" src="" alt="" class="popup-image">
       </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- MOBILE MENU -->
-<div id="mobileMenu">
-
-  <div class="mobileMenuHeader">
-    Исторические периоды
-    <span id="closeMobileMenu">✕</span>
-  </div>
-
-  <div class="mobilePeriod" data-modal="modalAltai">
-    Алтайское селение
-  </div>
-
-  <div class="mobilePeriod" data-modal="modalMerchant">
-    Купеческий период
-  </div>
-
-  <div class="mobilePeriod" data-modal="modalSoviet">
-    Советский период
-  </div>
-
-  <div class="mobilePeriod" data-modal="modalModern">
-    Современный город
-  </div>
-
-</div>
-</div>
     </div>
   </div>
 </div>

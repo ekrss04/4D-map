@@ -657,10 +657,6 @@ html, body {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 
-#btnMenu {
-  display: none;
-}
-
 /* =========================================================
    МОБИЛЬНАЯ АДАПТАЦИЯ
    НЕ ТРОГАЕТ DESKTOP
@@ -696,11 +692,7 @@ html, body {
 
   /* ===== Карта ===== */
   #cesiumContainer {
-    position: absolute;
-    top: 72px;
-    bottom: 70px;
-    left: 0;
-    right: 0;
+    height: 100%;
   }
 
   /* ===== Убираем нижний title ===== */
@@ -886,75 +878,5 @@ html, body {
 
   .period-modal {
     max-height: 82vh;
-  }
-}
-/* =========================================
-   MOBILE MENU
-========================================= */
-/* Скрываем кнопку меню на ПК */
-#btnMenu {
-  display: none;
-  background-image: url("https://raw.githubusercontent.com/ekrss04/Data-/main/visual/icons_1/menu.svg");
-}
-
-/* Только мобильная версия */
-@media (max-width: 768px) {
-  /* Показываем бургер */
-  #btnMenu {
-    display: block;
-  }
-
-  /* Прячем timeline */
-  #timelineContainer {
-    display: none;
-  }
-
-  /* Меню */
-  #mobileMenu {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 85%;
-    max-width: 360px;
-    height: 100dvh;
-    background: rgba(15, 15, 15, 0.98);
-    z-index: 9000;
-    transition: right 0.35s ease;
-    overflow-y: auto;
-    backdrop-filter: blur(12px);
-    color: white;
-    font-family: "Noah", Arial, sans-serif;
-  }
-
-  #mobileMenu.active {
-    right: 0;
-  }
-
-  .mobileMenuHeader {
-    height: 72px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 22px;
-    font-size: 22px;
-    font-weight: bold;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  }
-
-  #closeMobileMenu {
-    font-size: 34px;
-    cursor: pointer;
-  }
-
-  .mobilePeriod {
-    padding: 22px;
-    font-size: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    cursor: pointer;
-    transition: background 0.25s ease;
-  }
-
-  .mobilePeriod:active {
-    background: rgba(255, 255, 255, 0.08);
   }
 }

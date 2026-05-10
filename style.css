@@ -816,66 +816,106 @@ html, body {
     font-size: 12px;
   }
 }
-/* Маленькие смартфоны (до 480px) */
-@media (max-width: 480px) {
-  /* Панель иконок */
-  .ui-btn {
-    width: 60px;
-    height: 60px;
-    background-size: 40px 40px;
-  }
-
-  /* Плеер ещё крупнее */
-  #customPlayer {
-    bottom: 130px;
-    width: 220px;
-    height: 54px;
-  }
-
-  /* Таймлайн */
-  #timelineContainer {
-    height: 42px;
-    bottom: 38px;
-  }
-
-  #mapTitleContainer {
-    height: 38px;
-  }
-
-  #cesiumContainer {
-    height: calc(100% - 76px);
-  }
-
-  .modal-title {
-    font-size: 18px;
-  }
-
-  .modal-description {
-    font-size: 12px;
-  }
-
-  .close-modal {
-    top: 8px;
-    right: 15px;
-    font-size: 28px;
-    width: 30px;
-    height: 30px;
-  }
-
-  .popup-close {
-    top: 10px;
-    right: 15px;
-    font-size: 24px;
-  }
-
-  .images-grid {
-    gap: 4px;
-  }
-
-  .image-caption {
-    font-size: 8px;
-  }
+/* ========== СТИЛИ ДЛЯ ЛЕГЕНДЫ ========== */
+.legend-container {
+  position: absolute;
+  top: 60px;
+  right: 10px;
+  background: white;
+  color: #333;
+  border-radius: 8px;
+  padding: 15px;
+  z-index: 1002;
+  font-family: "Noah", Arial, sans-serif;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  min-width: 340px;
+  max-height: 80vh;
+  overflow-y: auto;
+  display: none;
 }
+
+.legend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 8px;
+  margin-bottom: 15px;
+}
+
+.legend-header h4 {
+  margin: 0;
+  font-size: 18px;
+  text-align: center;
+}
+
+.legend-close {
+  font-size: 22px;
+  cursor: pointer;
+  color: #666;
+}
+
+.legend-close:hover {
+  color: #333;
+}
+
+.legend-section {
+  margin-bottom: 16px;
+}
+
+.legend-title {
+  font-weight: bold;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.legend-subsection {
+  margin-left: 12px;
+  margin-bottom: 8px;
+}
+
+.legend-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 6px;
+  user-select: none;
+}
+
+.legend-arrow {
+  font-size: 12px;
+  width: 16px;
+  display: inline-block;
+}
+
+.legend-subcontent {
+  margin-left: 24px;
+  margin-top: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+  border-radius: 3px;
+  border: 1px solid #888;
+  flex-shrink: 0;
+}
+
+#btnLegend {
+  background-image: url("https://raw.githubusercontent.com/ekrss04/Data-/main/visual/icons_1/legend.svg");
+}
+
 /* Ландшафтная ориентация на телефонах */
 @media (max-width: 768px) and (orientation: landscape) {
   #ui {

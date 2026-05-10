@@ -27,7 +27,6 @@ window.onload = function () {
     
     let reliefLayer = null;
     // ========== КОНЕЦ БЛОКА РЕЛЬЕФА ==========
-
     // Скрываем стандартные кнопки
     viewer.homeButton.container.style.display = 'none';
     viewer.sceneModePicker.container.style.display = 'none';
@@ -50,55 +49,52 @@ window.onload = function () {
     const parkColor = Cesium.Color.fromCssColorString('#86c882').withAlpha(0.5);
 
     // Цвета для дорог по классам
-    const roadMainBaseColor = Cesium.Color.fromCssColorString('#b0b0b0');
-    const roadMainTopColor = Cesium.Color.fromCssColorString('#c4b0a4');
-    const roadSecondaryColor = Cesium.Color.fromCssColorString('#b0b0b0');
-    const roadLocalColor = Cesium.Color.fromCssColorString('#b0b0b0');
-
+    const roadMainBaseColor = Cesium.Color.fromCssColorString('#999999').withAlpha(1);
+    const roadMainTopColor = Cesium.Color.fromCssColorString('#a08573').withAlpha(1);
+    const roadSecondaryColor = Cesium.Color.fromCssColorString('#999999').withAlpha(1);
+    const roadLocalColor = Cesium.Color.fromCssColorString('#999999').withAlpha(1);
     // Цвета для зданий по назначению
-    const buildingResidentialColor = Cesium.Color.fromCssColorString('#8dabc2').withAlpha(0.9);
-    const buildingPublicColor = Cesium.Color.fromCssColorString('#ab96a5').withAlpha(0.9);
-    const buildingIndustrialColor = Cesium.Color.fromCssColorString('#909090').withAlpha(0.9);
-    const buildingOtherColor = Cesium.Color.fromCssColorString('#C0C0C0').withAlpha(0.9);
-
-    // Цвета для классификации по десятилетиям
+    const buildingResidentialColor = Cesium.Color.fromCssColorString('#678398').withAlpha(1);
+    const buildingPublicColor = Cesium.Color.fromCssColorString('#986177').withAlpha(1);
+    const buildingIndustrialColor = Cesium.Color.fromCssColorString('#78488e').withAlpha(1);
+    const buildingOtherColor = Cesium.Color.fromCssColorString('#9e9e9e').withAlpha(1);
+          // Цвета для классификации по десятилетиям (затемнённая, приглушённая версия)
     const decadeColors = {
-        '1820-1829': Cesium.Color.fromCssColorString('#FFF176').withAlpha(0.9),
-        '1830-1839': Cesium.Color.fromCssColorString('#FFE082').withAlpha(0.9),
-        '1840-1849': Cesium.Color.fromCssColorString('#FFD54F').withAlpha(0.9),
-        '1850-1859': Cesium.Color.fromCssColorString('#FFCA28').withAlpha(0.9),
-        '1860-1869': Cesium.Color.fromCssColorString('#FFC107').withAlpha(0.9),
-        '1870-1879': Cesium.Color.fromCssColorString('#FFB300').withAlpha(0.9),
-        '1880-1889': Cesium.Color.fromCssColorString('#E6A800').withAlpha(0.9),
-        '1890-1899': Cesium.Color.fromCssColorString('#CC9A00').withAlpha(0.9),
-        '1900-1909': Cesium.Color.fromCssColorString('#D4A574').withAlpha(0.9),
-        '1910-1919': Cesium.Color.fromCssColorString('#C8956C').withAlpha(0.9),
-        '1920-1929': Cesium.Color.fromCssColorString('#BA8565').withAlpha(0.9),
-        '1930-1939': Cesium.Color.fromCssColorString('#AB7A6D').withAlpha(0.9),
-        '1940-1949': Cesium.Color.fromCssColorString('#9C6E7A').withAlpha(0.9),
-        '1950-1959': Cesium.Color.fromCssColorString('#8D6288').withAlpha(0.9),
-        '1960-1969': Cesium.Color.fromCssColorString('#7E5695').withAlpha(0.9),
-        '1970-1979': Cesium.Color.fromCssColorString('#6F4AA2').withAlpha(0.9),
-        '1980-1989': Cesium.Color.fromCssColorString('#603EAE').withAlpha(0.9),
-        '1990-1999': Cesium.Color.fromCssColorString('#5232BA').withAlpha(0.9),
-        '2000-2009': Cesium.Color.fromCssColorString('#4326C6').withAlpha(0.9),
-        '2010-2019': Cesium.Color.fromCssColorString('#341AD2').withAlpha(0.9),
-        '2020-2029': Cesium.Color.fromCssColorString('#9C27B0').withAlpha(0.9) 
+        '1820-1829': Cesium.Color.fromCssColorString('#14275e').withAlpha(1), 
+        '1830-1839': Cesium.Color.fromCssColorString('#172c63').withAlpha(1),
+        '1840-1849': Cesium.Color.fromCssColorString('#1b3168').withAlpha(1),
+        '1850-1859': Cesium.Color.fromCssColorString('#1e366d').withAlpha(1),
+        '1860-1869': Cesium.Color.fromCssColorString('#223b72').withAlpha(1),
+        '1870-1879': Cesium.Color.fromCssColorString('#254077').withAlpha(1),
+        '1880-1889': Cesium.Color.fromCssColorString('#2a467c').withAlpha(1),
+        '1890-1899': Cesium.Color.fromCssColorString('#2f4b81').withAlpha(1),
+        '1900-1909': Cesium.Color.fromCssColorString('#345186').withAlpha(1),
+        '1910-1919': Cesium.Color.fromCssColorString('#39568b').withAlpha(1),
+        '1920-1929': Cesium.Color.fromCssColorString('#405c90').withAlpha(1),
+        '1930-1939': Cesium.Color.fromCssColorString('#5a6894').withAlpha(1),
+        '1940-1949': Cesium.Color.fromCssColorString('#766e89').withAlpha(1),
+        '1950-1959': Cesium.Color.fromCssColorString('#8e6f7a').withAlpha(1),
+        '1960-1969': Cesium.Color.fromCssColorString('#a5706d').withAlpha(1),
+        '1970-1979': Cesium.Color.fromCssColorString('#b87c6a').withAlpha(1),
+        '1980-1989': Cesium.Color.fromCssColorString('#c6846a').withAlpha(1),
+        '1990-1999': Cesium.Color.fromCssColorString('#d48e6e').withAlpha(1),
+        '2000-2009': Cesium.Color.fromCssColorString('#e09e76').withAlpha(1),
+        '2010-2019': Cesium.Color.fromCssColorString('#e8ab7e').withAlpha(1),
+        '2020-2029': Cesium.Color.fromCssColorString('#f0b886').withAlpha(1)
     };
-
     // Цвета для классификации по этажности
     const floorsColors = {
-        1: Cesium.Color.fromCssColorString('#FFFACD').withAlpha(0.9),
-        2: Cesium.Color.fromCssColorString('#FFF59D').withAlpha(0.9),
-        3: Cesium.Color.fromCssColorString('#FFE082').withAlpha(0.9),
-        4: Cesium.Color.fromCssColorString('#FFD54F').withAlpha(0.9),
-        5: Cesium.Color.fromCssColorString('#FFCA28').withAlpha(0.9),
-        6: Cesium.Color.fromCssColorString('#FFC107').withAlpha(0.9),
-        7: Cesium.Color.fromCssColorString('#FFB300').withAlpha(0.9),
-        8: Cesium.Color.fromCssColorString('#FFA000').withAlpha(0.9),
-        9: Cesium.Color.fromCssColorString('#FF8F00').withAlpha(0.9),
-        10: Cesium.Color.fromCssColorString('#FF6F00').withAlpha(0.9),
-        '10+': Cesium.Color.fromCssColorString('#3F51B5').withAlpha(0.9)
+        1: Cesium.Color.fromCssColorString('#ffe3ba').withAlpha(1), 
+        2: Cesium.Color.fromCssColorString('#f7c998').withAlpha(1),
+        3: Cesium.Color.fromCssColorString('#efb07a').withAlpha(1),
+        4: Cesium.Color.fromCssColorString('#e3975d').withAlpha(1),
+        5: Cesium.Color.fromCssColorString('#d47f44').withAlpha(1),
+        6: Cesium.Color.fromCssColorString('#c46830').withAlpha(1),
+        7: Cesium.Color.fromCssColorString('#b45322').withAlpha(1),
+        8: Cesium.Color.fromCssColorString('#a2401a').withAlpha(1),
+        9: Cesium.Color.fromCssColorString('#903015').withAlpha(1),
+        10: Cesium.Color.fromCssColorString('#82231a').withAlpha(1),
+        '10+': Cesium.Color.fromCssColorString('#824a20').withAlpha(1) 
     };
 
     const borderStrokeColor = Cesium.Color.fromCssColorString('#b3526c');
@@ -134,7 +130,7 @@ window.onload = function () {
         return decadeColors[decadeKey] || buildingOtherColor;
     }
 
-    // Функция получения цвета по этажности
+    // Функция получения цвета по этажности (коричневая гамма)
     function getColorByFloorsCount(floors) {
         let floorsNum = parseInt(floors);
         if (isNaN(floorsNum)) return buildingOtherColor;
@@ -160,14 +156,18 @@ window.onload = function () {
                 case 'purpose':
                     const purpose = props["Назначение_2"] || '';
                     const purposeStr = String(purpose).trim();
-                    if (purposeStr === 'Жилое здание') {
-                        color = buildingResidentialColor;
-                    } else if (purposeStr === 'Общественное здание') {
-                        color = buildingPublicColor;
-                    } else if (purposeStr === 'Сооружение') {
-                        color = buildingIndustrialColor;
-                    } else {
-                        color = buildingOtherColor;
+                    switch (purposeStr) {
+                        case 'Жилое здание':
+                            color = buildingResidentialColor;
+                            break;
+                        case 'Общественное здание':
+                            color = buildingPublicColor;
+                            break;
+                        case 'Сооружение':
+                            color = buildingIndustrialColor;
+                            break;
+                        default:
+                            color = buildingOtherColor;
                     }
                     break;
                     
@@ -185,7 +185,9 @@ window.onload = function () {
                     color = buildingOtherColor;
             }
             
-            entity.polygon.material = color;
+            if (entity.polygon.material !== color) {
+                entity.polygon.material = color;
+            }
         });
     }
 
@@ -194,7 +196,6 @@ window.onload = function () {
             reliefLayer.show = (currentLayerIndex === 0) && layerVisibility.рельеф;
         }
     }
-
     function createTooltip(name, screenPosition) {
         const oldTooltip = document.getElementById('dynamicTooltip');
         if (oldTooltip) {
@@ -746,7 +747,60 @@ Cesium.GeoJsonDataSource.load(
         }
     }
 
-    function updateLegendButtons() {
+        function updateLegendButtons() {
+        // Все десятилетия для левой колонки (1820-1929)
+        const leftDecades = [
+            { label: '1820-1829', color: '#1a2f6b' },
+            { label: '1830-1839', color: '#1e3470' },
+            { label: '1840-1849', color: '#223a75' },
+            { label: '1850-1859', color: '#26407a' },
+            { label: '1860-1869', color: '#2a467f' },
+            { label: '1870-1879', color: '#2e4c84' },
+            { label: '1880-1889', color: '#345289' },
+            { label: '1890-1899', color: '#3a588e' },
+            { label: '1900-1909', color: '#405e93' },
+            { label: '1910-1919', color: '#466498' },
+            { label: '1920-1929', color: '#506a9d' }
+        ];
+        
+        // Все десятилетия для правой колонки (1930-2029)
+        const rightDecades = [
+            { label: '1930-1939', color: '#6b7aa3' },
+            { label: '1940-1949', color: '#8a8faa' },
+            { label: '1950-1959', color: '#a58f9f' },
+            { label: '1960-1969', color: '#bf9998' },
+            { label: '1970-1979', color: '#d3a395' },
+            { label: '1980-1989', color: '#e0ab94' },
+            { label: '1990-1999', color: '#edb796' },
+            { label: '2000-2009', color: '#f5c098' },
+            { label: '2010-2019', color: '#fbc79a' },
+            { label: '2020-2029', color: '#ffce9c' }
+        ];
+        
+        // Формируем HTML для левой колонки
+        let leftColumnHtml = '<div style="flex: 1;">';
+        leftDecades.forEach(decade => {
+            leftColumnHtml += `
+                <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                    <div style="width: 20px; height: 20px; background: ${decade.color}; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div>
+                    <span style="font-size: 11px;">${decade.label}</span>
+                </div>
+            `;
+        });
+        leftColumnHtml += '</div>';
+        
+        // Формируем HTML для правой колонки
+        let rightColumnHtml = '<div style="flex: 1;">';
+        rightDecades.forEach(decade => {
+            rightColumnHtml += `
+                <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                    <div style="width: 20px; height: 20px; background: ${decade.color}; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div>
+                    <span style="font-size: 11px;">${decade.label}</span>
+                </div>
+            `;
+        });
+        rightColumnHtml += '</div>';
+        
         let classificationsHtml = `
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
@@ -764,7 +818,7 @@ Cesium.GeoJsonDataSource.load(
                     </div>
                     <div id="section-purpose" style="margin-left: 24px; margin-top: 6px; display: ${expandedSections.purpose ? 'block' : 'none'};">
                         <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #8dabc2; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Жилые</span></div>
-                        <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #ab96a5; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Общественные</span></div>
+                        <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #d189a6; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Общественные</span></div>
                         <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #909090; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Сооружения</span></div>
                         <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #C0C0C0; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Прочее</span></div>
                     </div>
@@ -779,15 +833,9 @@ Cesium.GeoJsonDataSource.load(
                         </div>
                     </div>
                     <div id="section-decade" style="margin-left: 24px; margin-top: 6px; display: ${expandedSections.decade ? 'block' : 'none'};">
-                        <div style="display: flex; flex-direction: column; gap: 3px;">
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #440154; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1820-1829</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #3b528b; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1850-1859</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #26828e; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1880-1889</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #6cce5a; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1910-1919</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #e5e52e; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1920-1929</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #fd9e2c; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1960-1969</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #ed4d2e; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">1980-1989</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #6e1025; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span style="font-size: 11px;">2010-2019</span></div>
+                        <div style="display: flex; gap: 20px; justify-content: space-between;">
+                            ${leftColumnHtml}
+                            ${rightColumnHtml}
                         </div>
                     </div>
                 </div>
@@ -802,11 +850,11 @@ Cesium.GeoJsonDataSource.load(
                     </div>
                     <div id="section-floors" style="margin-left: 24px; margin-top: 6px; display: ${expandedSections.floors ? 'block' : 'none'};">
                         <div style="display: flex; flex-direction: column; gap: 3px;">
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #FFFACD; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>1 этаж</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #FFE082; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>3 этажа</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #FFC107; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>6 этажей</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #FF8F00; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>9 этажей</span></div>
-                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #3F51B5; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>10+ этажей</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #ffe3ba; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.95;"></div><span>1-2 этажа</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #efb07a; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.95;"></div><span>3-4 этажа</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #c46830; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.95;"></div><span>5-6 этажей</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #a2401a; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.95;"></div><span>7-9 этажей</span></div>
+                            <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #824a20; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.95;"></div><span>10+ этажей</span></div>
                         </div>
                     </div>
                 </div>
@@ -842,8 +890,8 @@ Cesium.GeoJsonDataSource.load(
                     <div style="font-weight: bold; color: #333; font-size: 14px;">ДОРОЖНАЯ СЕТЬ</div>
                     <button class="toggle-layer" data-layer="дороги" style="background: ${layerVisibility.дороги ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.дороги ? '✓' : '✗'}</button>
                 </div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 8px; background: #6a6a6a; margin-right: 10px; border-radius: 2px; position: relative;"><div style="position: absolute; top: 2px; left: 2px; width: 26px; height: 4px; background: #c4b0a4; border-radius: 1px;"></div></div><span>Главные дороги</span></div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 6px; background: #8a8a8a; margin-right: 10px; border-radius: 2px;"></div><span>Прочие дороги</span></div>
+                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 8px; background: #6a6a6a; margin-right: 10px; border-radius: 2px; position: relative;"><div style="position: absolute; top: 2px; left: 2px; width: 26px; height: 4px; background: #998680; border-radius: 1px;"></div></div><span>Главные дороги</span></div>
+                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 6px; background: #b0b0b0; margin-right: 10px; border-radius: 2px;"></div><span>Прочие дороги</span></div>
                 <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #b0b0b0; margin-right: 10px; border-radius: 2px;"></div><span>Проезды</span></div>
             </div>
 
@@ -1043,7 +1091,7 @@ Cesium.GeoJsonDataSource.load(
     // --- Здания ---
     if (!buildingsDataSource) {
         Cesium.GeoJsonDataSource.load(
-            'https://cdn.jsdelivr.net/gh/ekrss04/Data-/Buildings.geojson',
+            'https://raw.githubusercontent.com/ekrss04/Data-/main/Buildings.geojson',
             {
                 clampToGround: false
             }

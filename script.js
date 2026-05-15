@@ -54,10 +54,10 @@ window.onload = function () {
     const roadSecondaryColor = Cesium.Color.fromCssColorString('#999999').withAlpha(1);
     const roadLocalColor = Cesium.Color.fromCssColorString('#999999').withAlpha(1);
     // Цвета для зданий по назначению
-    const buildingResidentialColor = Cesium.Color.fromCssColorString('#678398').withAlpha(1);
-    const buildingPublicColor = Cesium.Color.fromCssColorString('#986177').withAlpha(1);
-    const buildingIndustrialColor = Cesium.Color.fromCssColorString('#78488e').withAlpha(1);
-    const buildingOtherColor = Cesium.Color.fromCssColorString('#9e9e9e').withAlpha(1);
+const buildingResidentialColor = Cesium.Color.fromCssColorString('#678398').withAlpha(1);  
+const buildingPublicColor = Cesium.Color.fromCssColorString('#986177').withAlpha(1);  
+const buildingIndustrialColor = Cesium.Color.fromCssColorString('#78488e').withAlpha(1);
+const buildingOtherColor = Cesium.Color.fromCssColorString('#9e9e9e').withAlpha(1);  
           // Цвета для классификации по десятилетиям (затемнённая, приглушённая версия)
     const decadeColors = {
         '1820-1829': Cesium.Color.fromCssColorString('#14275e').withAlpha(1), 
@@ -154,22 +154,26 @@ window.onload = function () {
             
             switch(currentClassification) {
                 case 'purpose':
-                    const purpose = props["Назначение_2"] || '';
-                    const purposeStr = String(purpose).trim();
-                    switch (purposeStr) {
-                        case 'Жилое здание':
-                            color = buildingResidentialColor;
-                            break;
-                        case 'Общественное здание':
-                            color = buildingPublicColor;
-                            break;
-                        case 'Сооружение':
-                            color = buildingIndustrialColor;
-                            break;
-                        default:
-                            color = buildingOtherColor;
-                    }
-                    break;
+    const purpose = props["Назначение_2"] || '';
+    const purposeStr = String(purpose).trim();
+    switch (purposeStr) {
+        case 'Жилое здание':
+            color = buildingResidentialColor;
+            break;
+        case 'Общественное здание':
+            color = buildingPublicColor;
+            break;
+        case 'Промышленное здание':
+        case 'Промышленные':
+            color = buildingIndustrialColor;
+            break;
+        case 'Сооружение':
+            color = buildingOtherColor;
+            break;
+        default:
+            color = buildingOtherColor;
+    }
+    break;
                     
                 case 'decade':
                     const yearStr = props["Год постройки"];
@@ -817,10 +821,10 @@ Cesium.GeoJsonDataSource.load(
                         </div>
                     </div>
                     <div id="section-purpose" style="margin-left: 24px; margin-top: 6px; display: ${expandedSections.purpose ? 'block' : 'none'};">
-                        <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #8dabc2; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Жилые</span></div>
-                        <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #d189a6; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Общественные</span></div>
-                        <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #909090; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Сооружения</span></div>
-                        <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #C0C0C0; margin-right: 10px; border-radius: 3px; border: 1px solid #888; opacity: 0.9;"></div><span>Прочее</span></div>
+    <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #678398; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>Жилые</span></div>
+    <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #986177; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>Общественные</span></div>
+    <div style="display: flex; align-items: center; margin-bottom: 4px;"><div style="width: 20px; height: 20px; background: #78488e; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>Промышленные</span></div>
+    <div style="display: flex; align-items: center;"><div style="width: 20px; height: 20px; background: #9e9e9e; margin-right: 10px; border-radius: 3px; border: 1px solid #888;"></div><span>Сооружения</span></div>
                     </div>
                 </div>
                 
@@ -884,14 +888,13 @@ Cesium.GeoJsonDataSource.load(
                 <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #77b1ea; margin-right: 10px; border-radius: 2px;"></div><span>Линейная гидрография</span></div>
                 <div style="display: flex; align-items: center; padding-left: 12px; margin-top: 6px;"><div style="width: 30px; height: 20px; background: #77b1ea; margin-right: 10px; border-radius: 3px; border: 1px solid #5a9aa0;"></div><span>Площадная гидрография</span></div>
             </div>
-
             <div style="margin-bottom: 16px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                     <div style="font-weight: bold; color: #333; font-size: 14px;">ДОРОЖНАЯ СЕТЬ</div>
                     <button class="toggle-layer" data-layer="дороги" style="background: ${layerVisibility.дороги ? '#4CAF50' : '#f44336'}; border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">${layerVisibility.дороги ? '✓' : '✗'}</button>
                 </div>
                 <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 8px; background: #6a6a6a; margin-right: 10px; border-radius: 2px; position: relative;"><div style="position: absolute; top: 2px; left: 2px; width: 26px; height: 4px; background: #998680; border-radius: 1px;"></div></div><span>Главные дороги</span></div>
-                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 6px; background: #b0b0b0; margin-right: 10px; border-radius: 2px;"></div><span>Прочие дороги</span></div>
+                <div style="display: flex; align-items: center; margin-bottom: 6px; padding-left: 12px;"><div style="width: 30px; height: 6px; background: #b0b0b0; margin-right: 10px; border-radius: 2px;"></div><span>Второстепенные дороги</span></div>
                 <div style="display: flex; align-items: center; padding-left: 12px;"><div style="width: 30px; height: 4px; background: #b0b0b0; margin-right: 10px; border-radius: 2px;"></div><span>Проезды</span></div>
             </div>
 
@@ -1088,7 +1091,7 @@ Cesium.GeoJsonDataSource.load(
         commandInfo.cancel = true;
     });
 
-    // --- Здания ---
+     // --- Здания ---
     if (!buildingsDataSource) {
         Cesium.GeoJsonDataSource.load(
             'https://raw.githubusercontent.com/ekrss04/Data-/main/Buildings.geojson',
@@ -1111,34 +1114,30 @@ Cesium.GeoJsonDataSource.load(
                 let height = parseFloat(props["Высота здания"]) || 10;
                 const yearStr = props["Год постройки"];
                 const floorsStr = props["Количесто этажей"];
+                const purposeStr = String(props["Назначение_2"] || '').trim();
 
                 entity.polygon.height = 0;
                 entity.polygon.extrudedHeight = height;
                 entity.polygon.outline = false;
 
+                // Определяем цвет в зависимости от текущей классификации
                 let color;
-                switch(currentClassification) {
-                    case 'purpose':
-                        const purpose = props["Назначение_2"] || '';
-                        const purposeStr = String(purpose).trim();
-                        if (purposeStr === 'Жилое здание') {
-                            color = buildingResidentialColor;
-                        } else if (purposeStr === 'Общественное здание') {
-                            color = buildingPublicColor;
-                        } else if (purposeStr === 'Сооружение') {
-                            color = buildingIndustrialColor;
-                        } else {
-                            color = buildingOtherColor;
-                        }
-                        break;
-                    case 'decade':
-                        color = getColorByDecade(yearStr);
-                        break;
-                    case 'floors':
-                        color = getColorByFloorsCount(floorsStr);
-                        break;
-                    default:
+                if (currentClassification === 'purpose') {
+                    if (purposeStr === 'Жилое здание') {
+                        color = buildingResidentialColor;
+                    } else if (purposeStr === 'Общественное здание') {
+                        color = buildingPublicColor;
+                    } else if (purposeStr === 'Промышленное здание' || purposeStr === 'Промышленные') {
+                        color = buildingIndustrialColor;
+                    } else {
                         color = buildingOtherColor;
+                    }
+                } else if (currentClassification === 'decade') {
+                    color = getColorByDecade(yearStr);
+                } else if (currentClassification === 'floors') {
+                    color = getColorByFloorsCount(floorsStr);
+                } else {
+                    color = buildingOtherColor;
                 }
                 entity.polygon.material = color;
 
@@ -1153,7 +1152,6 @@ Cesium.GeoJsonDataSource.load(
                     ]);
                 }
 
-                const buildingName = props["Здание"] || "Здание";
                 const purposeDisplay = props["Назначение_2"] || "не указано";
                 const floorsDisplay = props["Количесто этажей"] || "не указано";
                 entity.description = `Высота: ${height} м<br>Этажей: ${floorsDisplay}<br> Адрес: ${props["Адрес"] || "не указан"}<br> Год постройки: ${yearStr || "не указан"}<br> Назначение: ${purposeDisplay}`;
@@ -1182,13 +1180,14 @@ Cesium.GeoJsonDataSource.load(
         });
     }
 
-    addModel("Правительство", "https://raw.githubusercontent.com/ekrss04/Data-/main/Правительство.glb", 85.9643593, 51.9577677, 89.959, 0.62, 1935);
+        addModel("Правительство", "https://raw.githubusercontent.com/ekrss04/Data-/main/Правительство.glb", 85.9643593, 51.9577677, 89.959, 0.62, 1935);
     addModel("Прокуратура", "https://raw.githubusercontent.com/ekrss04/Data-/main/Прокуратура.glb", 85.9592711, 51.9567825, 91.673, 0.6, 2016);
     addModel("Голубой Алтай", "https://raw.githubusercontent.com/ekrss04/Data-/main/Голубой Алтай.glb", 85.9592352, 51.9519572, 70, 0.66, 1962);
     addModel("Дом культуры", "https://raw.githubusercontent.com/ekrss04/Data-/main/Дом%20культуры.glb", 85.961289, 51.9527243, 60.114, 0.616, 1970);
     addModel("Мечеть", "https://raw.githubusercontent.com/ekrss04/Data-/main/Мечеть.glb", 85.898202, 51.9675375, 54.022, 0.6, 2024);
     addModel("Администрация", "https://raw.githubusercontent.com/ekrss04/Data-/main/Администрация.glb", 85.9602147, 51.9592017, 90.073, 0.615, 1985);
     addModel("Лавка купца Тобокова", "https://raw.githubusercontent.com/ekrss04/Data-/main/Лавка%20Тобокова.glb", 85.9653642, 51.9520659, -81.488, 0.61, 1887);
+    addModel("Национальный драматический театр имени П.В. Кучияка", "https://raw.githubusercontent.com/ekrss04/Data-/main/Театр.glb", 85.9613045, 51.9592354, 180, 0.62, 1977);
 
     // ========== НАДПИСЬ НАЗВАНИЯ ГОРОДА ==========
     function getCityNameByYear(currentTime) {
@@ -1267,20 +1266,169 @@ Cesium.GeoJsonDataSource.load(
         }
     };
 
-    btnWalk.onclick = () => {
-        const carto = Cesium.Cartographic.fromCartesian(viewer.camera.position);
-        const destination = Cesium.Cartesian3.fromRadians(carto.longitude, carto.latitude, 1.7);
-        viewer.camera.flyTo({
-            destination,
-            orientation: {
-                heading: viewer.camera.heading,
-                pitch: 0,
-                roll: 0
-            },
-            duration: 1.5
+      // ========== РЕЖИМ ПРОГУЛКИ ==========
+    let walkModeActive = false;
+    let walkCameraPosition = null;
+    let walkCameraHeading = 0;
+    const WALK_SPEED = 8;
+    const ROTATE_SPEED = 1.5;
+    let moveForward = false, moveBack = false, moveLeft = false, moveRight = false;
+    let rotateLeft = false, rotateRight = false;
+    let walkAnimationId = null;
+    
+    function updateWalkPosition() {
+        if (!walkModeActive) return;
+        
+        const deltaTime = 1 / 60;
+        let rotated = false;
+        
+        if (rotateLeft) {
+            walkCameraHeading -= Cesium.Math.toRadians(ROTATE_SPEED);
+            rotated = true;
+        }
+        if (rotateRight) {
+            walkCameraHeading += Cesium.Math.toRadians(ROTATE_SPEED);
+            rotated = true;
+        }
+        
+        if (rotated) {
+            viewer.camera.setView({
+                orientation: { heading: walkCameraHeading, pitch: Cesium.Math.toRadians(-10), roll: 0 }
+            });
+        }
+        
+        if (moveForward || moveBack || moveLeft || moveRight) {
+            const speed = WALK_SPEED * deltaTime;
+            const direction = new Cesium.Cartesian3();
+            const forward = viewer.camera.direction;
+            const right = viewer.camera.right;
+            
+            if (moveForward) { direction.x += forward.x; direction.y += forward.y; direction.z += forward.z; }
+            if (moveBack) { direction.x -= forward.x; direction.y -= forward.y; direction.z -= forward.z; }
+            if (moveRight) { direction.x += right.x; direction.y += right.y; direction.z += right.z; }
+            if (moveLeft) { direction.x -= right.x; direction.y -= right.y; direction.z -= right.z; }
+            
+            const length = Math.sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z);
+            if (length > 0) {
+                direction.x /= length;
+                direction.y /= length;
+                direction.z /= length;
+            }
+            
+            let newPosition = Cesium.Cartesian3.add(walkCameraPosition, 
+                new Cesium.Cartesian3(direction.x * speed, direction.y * speed, direction.z * speed), 
+                new Cesium.Cartesian3());
+            
+            const cartographic = Cesium.Cartographic.fromCartesian(newPosition);
+            const terrainHeight = viewer.scene.globe.getHeight(cartographic);
+            
+            if (terrainHeight !== undefined && !isNaN(terrainHeight)) {
+                cartographic.height = terrainHeight + 1.7;
+            } else {
+                cartographic.height = 1.7;
+            }
+            
+            newPosition = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, cartographic.height);
+            walkCameraPosition = newPosition;
+            viewer.camera.setView({ destination: walkCameraPosition });
+        }
+        
+        walkAnimationId = requestAnimationFrame(updateWalkPosition);
+    }
+    
+    function startWalkAnimation() {
+        if (walkAnimationId) cancelAnimationFrame(walkAnimationId);
+        walkAnimationId = requestAnimationFrame(updateWalkPosition);
+    }
+    
+    function startWalkMode() {
+        if (walkModeActive) return;
+        walkModeActive = true;
+        
+        const currentPosition = viewer.camera.position;
+        const currentHeading = viewer.camera.heading;
+        walkCameraPosition = currentPosition.clone();
+        walkCameraHeading = currentHeading;
+        
+        viewer.scene.screenSpaceCameraController.enableTilt = false;
+        viewer.scene.screenSpaceCameraController.enableLook = false;
+        viewer.scene.screenSpaceCameraController.enableRotate = false;
+        viewer.scene.screenSpaceCameraController.enableTranslate = false;
+        viewer.scene.screenSpaceCameraController.enableZoom = false;
+        
+        const cartographic = Cesium.Cartographic.fromCartesian(walkCameraPosition);
+        cartographic.height = 1.7;
+        const newPosition = Cesium.Cartesian3.fromRadians(cartographic.longitude, cartographic.latitude, cartographic.height);
+        viewer.camera.setView({
+            destination: newPosition,
+            orientation: { heading: walkCameraHeading, pitch: Cesium.Math.toRadians(-10), roll: 0 }
         });
+        
+        startWalkAnimation();
+        btnWalk.style.backgroundColor = 'rgba(66, 133, 244, 0.5)';
+        btnWalk.style.boxShadow = '0 0 15px rgba(66, 133, 244, 0.8)';
+        console.log("Режим прогулки активирован");
+    }
+    
+    function stopWalkMode() {
+        if (!walkModeActive) return;
+        walkModeActive = false;
+        
+        viewer.scene.screenSpaceCameraController.enableTilt = true;
+        viewer.scene.screenSpaceCameraController.enableLook = true;
+        viewer.scene.screenSpaceCameraController.enableRotate = true;
+        viewer.scene.screenSpaceCameraController.enableTranslate = true;
+        viewer.scene.screenSpaceCameraController.enableZoom = true;
+        
+        if (walkAnimationId) {
+            cancelAnimationFrame(walkAnimationId);
+            walkAnimationId = null;
+        }
+        
+        moveForward = moveBack = moveLeft = moveRight = rotateLeft = rotateRight = false;
+        btnWalk.style.backgroundColor = 'rgba(30, 30, 30, 0.85)';
+        btnWalk.style.boxShadow = 'none';
+        console.log("Режим прогулки деактивирован");
+    }
+    
+    function walkHandleKeyDown(e) {
+        if (!walkModeActive) return;
+        switch(e.key) {
+            case 'ArrowUp': case 'w': case 'W': moveForward = true; e.preventDefault(); break;
+            case 'ArrowDown': case 's': case 'S': moveBack = true; e.preventDefault(); break;
+            case 'ArrowLeft': case 'a': case 'A': moveLeft = true; e.preventDefault(); break;
+            case 'ArrowRight': case 'd': case 'D': moveRight = true; e.preventDefault(); break;
+            case 'q': case 'Q': rotateLeft = true; e.preventDefault(); break;
+            case 'e': case 'E': rotateRight = true; e.preventDefault(); break;
+            case 'Escape': stopWalkMode(); break;
+        }
+    }
+    
+    function walkHandleKeyUp(e) {
+        if (!walkModeActive) return;
+        switch(e.key) {
+            case 'ArrowUp': case 'w': case 'W': moveForward = false; e.preventDefault(); break;
+            case 'ArrowDown': case 's': case 'S': moveBack = false; e.preventDefault(); break;
+            case 'ArrowLeft': case 'a': case 'A': moveLeft = false; e.preventDefault(); break;
+            case 'ArrowRight': case 'd': case 'D': moveRight = false; e.preventDefault(); break;
+            case 'q': case 'Q': rotateLeft = false; e.preventDefault(); break;
+            case 'e': case 'E': rotateRight = false; e.preventDefault(); break;
+        }
+    }
+    
+    // Регистрация обработчиков клавиатуры
+    document.addEventListener('keydown', walkHandleKeyDown);
+    document.addEventListener('keyup', walkHandleKeyUp);
+    
+    // --- Кнопка прогулки ---
+    btnWalk.onclick = () => {
+        if (!walkModeActive) {
+            startWalkMode();
+        } else {
+            stopWalkMode();
+        }
     };
-
+    // ========== КОНЕЦ РЕЖИМА ПРОГУЛКИ ==========
     // Geocoder
     const customGeocoderContainer = document.createElement("div");
     customGeocoderContainer.style.cssText = `
@@ -1512,7 +1660,11 @@ Cesium.GeoJsonDataSource.load(
             'Лавка купца Тобокова': {
                 desc: 'Лавка купца Д. М. Тобокова построена в 1887 году. Здание использовалось Даниилом Михайловичем в качестве винной лавки. В 1920-е годы здесь располагался Союз охотников. С 1926 по 1931 годы здание принадлежало Ойротскому краеведческому музею, затем передано в распоряжение Горно-Алтайской конторы государственной торговли (Горно-Алтайторг). 1989 году объект получил охранный статус и стал объектом культурного наследия регионального значения.',
                 img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Лавка%20Тобокова.jpg?raw=true'
-            }
+            },
+'Национальный драматический театр имени П.В. Кучияка': {
+    desc: 'Здание театра построено в 1977 году. По форме напоминает традиционное алтайское жилище – аил. В оформлении фасада использованы панели из кедра и украшения с национальными орнаментами. Театр играет важную роль в сохранении и развитии культуры коренных народов Алтая. Театру присвоено имя алтайского драматурга Павла Васильевича Кучияка, основоположника алтайской драматургии и создателя первых национальных пьес.',
+    img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Театр.jpg?raw=true'
+}
         };
         if (data[name]) {
             const p = document.getElementById('modelPopup');
@@ -1537,7 +1689,35 @@ Cesium.GeoJsonDataSource.load(
         document.querySelectorAll('.popup-container').forEach(p => p.style.display = 'none');
         currentPopup = null;
     }
+const mobileMenu = document.getElementById("mobileMenu");
+const btnMenu = document.getElementById("btnMenu");
+const closeMobileMenu = document.getElementById("closeMobileMenu");
 
+btnMenu.addEventListener("click", () => {
+  mobileMenu.classList.add("active");
+});
+
+closeMobileMenu.addEventListener("click", () => {
+  mobileMenu.classList.remove("active");
+});
+
+document.querySelectorAll(".mobilePeriod").forEach(item => {
+
+  item.addEventListener("click", () => {
+
+    mobileMenu.classList.remove("active");
+
+    const modalId = item.dataset.modal;
+
+    const modal = document.getElementById(modalId);
+
+    if (modal) {
+      modal.style.display = "block";
+    }
+
+  });
+
+});
     // Обработчик кликов
     viewer.screenSpaceEventHandler.setInputAction(function(m) {
         const pickedObject = viewer.scene.pick(m.position);

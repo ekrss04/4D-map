@@ -1,5 +1,4 @@
 @charset "UTF-8";
-/* ========== БАЗОВЫЕ СТИЛИ ========== */
 html, body {
   width: 100%;
   height: 100%;
@@ -12,7 +11,6 @@ html, body {
   height: calc(100% - 84px);
 }
 
-/* ========== ПЛЕЕР ========== */
 #customPlayer {
   position: absolute;
   bottom: 180px;
@@ -78,7 +76,6 @@ html, body {
   border-radius: 1px;
 }
 
-/* ========== ТАЙМЛАЙН ========== */
 #timelineContainer {
   position: absolute;
   bottom: 50px;
@@ -109,12 +106,14 @@ html, body {
   transition: all 0.3s ease;
 }
 
+/* Подсветка при наведении */
 .period-btn:hover {
   opacity: 0.15;
   background-color: rgba(255, 255, 255, 0.3);
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
+/* Белая полоска снизу при наведении */
 .period-btn:hover::after {
   content: "";
   position: absolute;
@@ -163,7 +162,6 @@ html, body {
   border-radius: 1px;
 }
 
-/* ========== ЗАГОЛОВОК КАРТЫ ========== */
 #mapTitleContainer {
   position: absolute;
   bottom: 0;
@@ -181,7 +179,6 @@ html, body {
   display: block;
 }
 
-/* ========== UI КНОПКИ ========== */
 #ui {
   position: absolute;
   top: 10px;
@@ -225,14 +222,13 @@ html, body {
   background-image: url("https://raw.githubusercontent.com/ekrss04/Data-/main/visual/icons_1/geocoder.svg");
 }
 
-/* ========== ШРИФТ ========== */
 @font-face {
   font-family: "Noah";
   src: url("https://fonts.gstatic.com/s/noah/v1/-F63fjxo-tLQoWUwNqJXWQ.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
 }
-/* ========== ПОДСКАЗКИ ========== */
+/* ========== СТИЛИ ДЛЯ ЧЕРНОЙ ПОДСКАЗКИ ========== */
 #dynamicTooltip {
   position: absolute;
   background: transparent !important;
@@ -386,6 +382,23 @@ html, body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+/* Анимация для раскрытия списков */
+#section-purpose,
+#section-decade,
+#section-floors {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Стиль для квадратных переключателей */
+.class-checkbox {
+  transition: all 0.2s ease;
+}
+
+.class-checkbox:hover {
+  transform: scale(1.1);
+  border-color: #1a73e8;
+}
+
 .period-modal .modal-image:hover {
   transform: scale(1.05);
   border-color: rgba(66, 133, 244, 0.7);
@@ -406,23 +419,6 @@ html, body {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-}
-
-/* ========== АНИМАЦИЯ ДЛЯ РАСКРЫТИЯ СПИСКОВ ========== */
-#section-purpose,
-#section-decade,
-#section-floors {
-  transition: all 0.3s ease-in-out;
-}
-
-/* ========== СТИЛИ ДЛЯ КВАДРАТНЫХ ПЕРЕКЛЮЧАТЕЛЕЙ ========== */
-.class-checkbox {
-  transition: all 0.2s ease;
-}
-
-.class-checkbox:hover {
-  transform: scale(1.1);
-  border-color: #1a73e8;
 }
 
 /* ========== СТИЛИ ДЛЯ МОДАЛЬНЫХ ОКОН МОДЕЛЕЙ ========== */
@@ -467,10 +463,6 @@ html, body {
 .model-modal {
   width: 600px;
   height: 680px;
-}
-
-#btnMenu {
-  display: none;
 }
 
 /* ========== ВСПЛЫВАЮЩИЕ ОКНА ДЛЯ ЗДАНИЙ И МОДЕЛЕЙ ========== */
@@ -665,213 +657,288 @@ html, body {
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* =========================================================
-   МОБИЛЬНАЯ АДАПТАЦИЯ (ТОЛЬКО ДЛЯ ЭКРАНОВ ДО 768px)
-========================================================= */
+/* ========== МЕДИА-ЗАПРОСЫ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ========== */
+/* Планшеты (до 1024px) - небольшая адаптация */
+@media (max-width: 1024px) {
+  .period-modal {
+    width: 90%;
+    max-width: 620px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: auto;
+    max-height: 80vh;
+  }
+
+  .modal-content {
+    padding: 13px 30px 25px 30px;
+  }
+}
+/* Смартфоны (до 768px) */
 @media (max-width: 768px) {
-  /* ===== Верхняя панель ===== */
+  /* Панель с иконками - растягиваем на всю ширину вверху */
   #ui {
     top: 0;
     left: 0;
     right: 0;
     width: 100%;
-    height: 72px;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
     gap: 0;
-    background: rgba(15, 15, 15, 0.96);
-    backdrop-filter: blur(12px);
-    z-index: 3000;
+    background: rgba(30, 30, 30, 0.85);
+    padding: 8px 0;
+    backdrop-filter: blur(5px);
   }
 
+  /* Иконки становятся крупнее и равномерно распределяются */
   .ui-btn {
-    width: 100%;
-    height: 72px;
-    border-radius: 0;
-    background-size: 42px 42px;
-    background-position: center;
-    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    width: 50px;
+    height: 50px;
+    background-size: 35px 35px;
+    margin: 0;
+    border-radius: 12px;
   }
 
-  .ui-btn:active {
-    transform: scale(0.95);
+  /* Увеличиваем плеер */
+  #customPlayer {
+    bottom: 150px;
+    left: 10px;
+    width: 200px;
+    height: 48px;
   }
 
-  /* ===== Карта ===== */
+  /* Увеличиваем область контейнера карты */
   #cesiumContainer {
-    height: 100%;
+    height: calc(100% - 66px);
   }
 
-  /* ===== Убираем нижний title ===== */
-  #mapTitleContainer {
-    display: none;
-  }
-
-  /* ===== Timeline ===== */
+  /* Таймлайн выше и прокручиваемый */
   #timelineContainer {
-    bottom: 0;
-    height: 70px;
+    bottom: 45px;
+    height: 38px;
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
-    background: rgba(20, 20, 20, 0.96);
-    z-index: 2500;
     -webkit-overflow-scrolling: touch;
   }
 
   #timelineContainer::-webkit-scrollbar {
-    height: 4px;
+    height: 3px;
+  }
+
+  #timelineContainer::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
   }
 
   #timelineContainer::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
+    border-radius: 3px;
   }
 
   #timelineSVG {
-    width: 1400px;
-    min-width: 1400px;
-    height: 100%;
-    object-fit: contain;
-  }
-
-  .period-btn {
+    min-width: 500px;
     height: 100%;
   }
 
-  /* ===== Player ===== */
-  #customPlayer {
-    bottom: 85px;
-    left: 12px;
-    width: 250px;
-    height: 64px;
-    z-index: 3500;
+  /* Обертка для кнопок периодов */
+  .timeline-wrapper {
+    display: inline-block;
+    min-width: 100%;
+    height: 100%;
+    position: relative;
   }
 
-  /* ===== Tooltip ===== */
-  #dynamicTooltip {
-    font-size: 18px;
-    padding: 10px 14px;
-  }
-
-  /* ===== Модальные окна периодов ===== */
+  /* Модальные окна на весь экран */
   .period-modal {
-    top: 80px;
+    top: 10px;
     left: 10px;
     right: 10px;
     width: auto;
-    height: auto;
-    max-height: 78vh;
-    z-index: 5000;
+    max-width: none;
+    transform: none;
+    max-height: 90vh;
   }
 
   .modal-content {
-    padding: 18px;
+    padding: 10px 20px 20px 20px;
   }
 
   .modal-title {
-    font-size: 22px;
-    margin-bottom: 12px;
+    font-size: 20px;
+    padding-right: 30px;
   }
 
   .modal-description {
-    font-size: 15px;
-    line-height: 1.6;
-    max-width: 100%;
+    font-size: 13px;
   }
 
   .images-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 6px;
   }
 
   .period-modal .modal-image {
     width: 100%;
     height: auto;
-    border-radius: 12px;
+    aspect-ratio: 148/92;
   }
 
   .image-caption {
+    font-size: 9px;
     max-width: 100%;
-    font-size: 13px;
-    height: auto;
   }
 
-  /* ===== Popup зданий ===== */
-  .building-popup {
-    left: 10px;
-    right: 10px;
-    width: auto;
-    bottom: 85px;
+  /* Всплывающие окна */
+  .building-popup,
+.model-popup {
     top: auto;
+    bottom: 20px;
+    right: 20px;
+    left: 20px;
+    width: auto;
+    max-width: none;
     height: auto;
-    max-height: 55vh;
+    max-height: 60vh;
   }
 
-  /* ===== Popup моделей ===== */
   .model-popup {
-    left: 10px;
-    right: 10px;
-    width: auto;
-    bottom: 85px;
-    top: auto;
-    height: auto;
-    max-height: 72vh;
+    max-height: 70vh;
   }
 
-  .model-popup .popup-content,
-.building-popup .popup-content {
-    padding: 24px;
+  .popup-content {
+    padding: 20px;
   }
 
   .popup-title {
-    font-size: 24px;
-    margin-bottom: 14px;
+    font-size: 18px;
   }
 
   .popup-description {
-    font-size: 15px;
-    line-height: 1.6;
-  }
-
-  .model-popup .popup-image {
-    max-width: 100%;
-    max-height: 260px;
-    border-radius: 12px;
-  }
-
-  /* ===== Кнопка закрытия ===== */
-  .popup-close,
-.close-modal {
-    width: 42px;
-    height: 42px;
-    font-size: 34px;
+    font-size: 12px;
   }
 }
-/* =========================================================
-   ЛАНДШАФТНАЯ ОРИЕНТАЦИЯ НА ТЕЛЕФОНАХ
-========================================================= */
+/* Маленькие смартфоны (до 480px) */
+@media (max-width: 480px) {
+  /* Панель иконок */
+  .ui-btn {
+    width: 60px;
+    height: 60px;
+    background-size: 40px 40px;
+  }
+
+  /* Плеер ещё крупнее */
+  #customPlayer {
+    bottom: 130px;
+    width: 220px;
+    height: 54px;
+  }
+
+  /* Таймлайн */
+  #timelineContainer {
+    height: 42px;
+    bottom: 38px;
+  }
+
+  #mapTitleContainer {
+    height: 38px;
+  }
+
+  #cesiumContainer {
+    height: calc(100% - 76px);
+  }
+
+  .modal-title {
+    font-size: 18px;
+  }
+
+  .modal-description {
+    font-size: 12px;
+  }
+
+  .close-modal {
+    top: 8px;
+    right: 15px;
+    font-size: 28px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .popup-close {
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+  }
+
+  .images-grid {
+    gap: 4px;
+  }
+
+  .image-caption {
+    font-size: 8px;
+  }
+}
+/* Ландшафтная ориентация на телефонах */
 @media (max-width: 768px) and (orientation: landscape) {
   #ui {
-    height: 58px;
+    padding: 4px 0;
   }
 
   .ui-btn {
-    height: 58px;
-    background-size: 34px 34px;
+    width: 44px;
+    height: 44px;
+    background-size: 30px 30px;
   }
 
   #customPlayer {
-    width: 210px;
-    height: 52px;
-    bottom: 70px;
+    bottom: 90px;
+    width: 180px;
+    height: 40px;
   }
 
   #timelineContainer {
-    height: 52px;
+    bottom: 25px;
+    height: 32px;
   }
 
   .period-modal {
-    max-height: 82vh;
+    max-height: 85vh;
+  }
+
+  .modal-description {
+    max-height: 200px;
+  }
+}
+/* Отключаем hover-эффекты на тач-устройствах для лучшей производительности */
+@media (hover: none) and (pointer: coarse) {
+  .player-btn:hover {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .period-btn:hover {
+    opacity: 0;
+    background-color: transparent;
+  }
+
+  .ui-btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .period-modal .modal-image:hover {
+    transform: none;
+  }
+
+  /* Используем active вместо hover */
+  .player-btn:active {
+    background: rgba(66, 133, 244, 0.25);
+  }
+
+  .period-btn:active {
+    opacity: 0.15;
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .ui-btn:active {
+    transform: scale(0.95);
   }
 }

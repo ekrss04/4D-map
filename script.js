@@ -1184,7 +1184,7 @@ Cesium.GeoJsonDataSource.load(
     addModel("Прокуратура", "https://raw.githubusercontent.com/ekrss04/Data-/main/Прокуратура.glb", 85.9592711, 51.9567825, 91.673, 0.6, 2016);
     addModel("Голубой Алтай", "https://raw.githubusercontent.com/ekrss04/Data-/main/Голубой Алтай.glb", 85.9592352, 51.9519572, 70, 0.66, 1962);
     addModel("Дом культуры", "https://raw.githubusercontent.com/ekrss04/Data-/main/Дом%20культуры.glb", 85.961289, 51.9527243, 60.114, 0.616, 1970);
-    addModel("Мечеть Духовного управления мусульман", "https://raw.githubusercontent.com/ekrss04/Data-/main/Мечеть.glb", 85.898202, 51.9675375, 54.022, 0.6, 2024);
+    addModel("Мечеть", "https://raw.githubusercontent.com/ekrss04/Data-/main/Мечеть.glb", 85.898202, 51.9675375, 54.022, 0.6, 2024);
     addModel("Администрация", "https://raw.githubusercontent.com/ekrss04/Data-/main/Администрация.glb", 85.9602147, 51.9592017, 90.073, 0.615, 1985);
     addModel("Лавка купца Тобокова", "https://raw.githubusercontent.com/ekrss04/Data-/main/Лавка%20Тобокова.glb", 85.9653642, 51.9520659, -81.488, 0.61, 1887);
     addModel("Национальный драматический театр имени П.В. Кучияка", "https://raw.githubusercontent.com/ekrss04/Data-/main/Театр.glb", 85.9613045, 51.9592354, 180, 0.62, 1977);
@@ -1666,193 +1666,58 @@ Cesium.GeoJsonDataSource.load(
     img: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/models/Театр.jpg?raw=true'
 }
         };
-    // ========== ДАННЫЕ ДЛЯ МОБИЛЬНОЙ ПАНЕЛИ ПЕРИОДОВ ==========
-    const mobilePeriodsData = {
-        altai: {
-            title: 'Алтайское селение',
-            description: document.querySelector('#modalAltai .modal-description')?.innerHTML || 'Описание временно недоступно.',
-            images: [
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/1.1.jpg?raw=true', caption: 'Мужская и женская церковно-приходские школы' },
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/1.2.jpg?raw=true', caption: 'Мужская церковно-приходская школа' },
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/1.3.jpg?raw=true', caption: 'с. Улала в начале XX века' }
-            ],
-            archiveLink: 'https://ekrss04.github.io/Gorno-Altaisk-website/#archive-photos'
-        },
-        merchant: {
-            title: 'Купеческий период',
-            description: document.querySelector('#modalMerchant .modal-description')?.innerHTML || '',
-            images: [
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/2.1.jpg?raw=true', caption: 'Винная лавка купца Тобокова' },
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/2.2.jpg?raw=true', caption: 'Дом купца Бодунова' },
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/2.3.jpg?raw=true', caption: 'Лавка купца Хакина' }
-            ],
-            archiveLink: 'https://ekrss04.github.io/Gorno-Altaisk-website/#archive-photos'
-        },
-        soviet: {
-            title: 'Советский период',
-            description: document.querySelector('#modalSoviet .modal-description')?.innerHTML || '',
-            images: [
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/3.1.jpg?raw=true', caption: 'Кинотеатр Голубой Алтай' },
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/3.2.jpg?raw=true', caption: 'Дом Культуры' },
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/3.3.jpg?raw=true', caption: 'Кинотеатр имени М. Горького' }
-            ],
-            archiveLink: 'https://ekrss04.github.io/Gorno-Altaisk-website/#archive-photos'
-        },
-        modern: {
-            title: 'Современный город',
-            description: document.querySelector('#modalModern .modal-description')?.innerHTML || '',
-            images: [
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/4.1.jpg?raw=true', caption: 'Национальный драматический театр имени П.В. Кучияка' },
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/4.2.jpg?raw=true', caption: 'Национальный музей имени А. В. Анохина' },
-                { src: 'https://github.com/ekrss04/Data-/blob/main/visual/photo/4.3.jpg?raw=true', caption: 'Прокуратура Республики Алтай' }
-            ],
-            archiveLink: 'https://ekrss04.github.io/Gorno-Altaisk-website/#archive-photos'
-        }
-    };
-
-    // ========== ФУНКЦИИ ДЛЯ МОБИЛЬНОЙ ПАНЕЛИ ==========
-    function showMobilePeriodList() {
-        const container = document.getElementById('mobileMenuContent');
-        if (!container) return;
-        
-        let html = '<div class="mobile-period-list">';
-        const keys = ['altai', 'merchant', 'soviet', 'modern'];
-        const titles = {
-            altai: 'Алтайское селение',
-            merchant: 'Купеческий период',
-            soviet: 'Советский период',
-            modern: 'Современный город'
-        };
-        keys.forEach(function(key) {
-            html += '<div class="mobile-period-item" data-period="' + key + '">' + titles[key] + '</div>';
-        });
-        html += '</div>';
-        container.innerHTML = html;
-
-        container.querySelectorAll('.mobile-period-item').forEach(function(el) {
-            el.addEventListener('click', function(e) {
-                var key = this.dataset.period;
-                showMobilePeriodDetail(key);
-            });
-        });
-
-        var titleEl = document.getElementById('mobileMenuTitle');
-        if (titleEl) titleEl.textContent = 'Исторические периоды';
-    }
-
-    function showMobilePeriodDetail(key) {
-        var data = mobilePeriodsData[key];
-        if (!data) return;
-
-        var container = document.getElementById('mobileMenuContent');
-        if (!container) return;
-
-        var html = '<div class="mobile-period-detail active">';
-        html += '<button class="mobile-detail-back" id="mobileDetailBack">← Назад</button>';
-        html += '<div class="mobile-detail-title">' + data.title + '</div>';
-        html += '<div class="mobile-detail-description">' + data.description + '</div>';
-        html += '<div class="mobile-detail-images">';
-        data.images.forEach(function(img) {
-            html += '<div><img src="' + img.src + '" alt="' + img.caption + '" class="mobile-detail-img"><div class="mobile-detail-caption">' + img.caption + '</div></div>';
-        });
-        html += '</div>';
-        html += '<a href="' + data.archiveLink + '" target="_blank" class="mobile-detail-archive-link">Больше фотографий</a>';
-        html += '</div>';
-
-        container.innerHTML = html;
-
-        var titleEl = document.getElementById('mobileMenuTitle');
-        if (titleEl) titleEl.textContent = data.title;
-
-        var backBtn = document.getElementById('mobileDetailBack');
-        if (backBtn) {
-            backBtn.addEventListener('click', function(e) {
-                showMobilePeriodList();
-            });
-        }
-
-        container.querySelectorAll('.mobile-detail-img').forEach(function(img) {
-            img.addEventListener('click', function(e) {
-                e.stopPropagation();
-                enlargePhoto(this.src, this.alt);
-            });
-        });
-
-        var menu = document.getElementById('mobileMenu');
-        if (menu) menu.classList.add('active');
-    }
-
-    // ========== МОБИЛЬНАЯ ПАНЕЛЬ ПЕРИОДОВ - ОБРАБОТЧИКИ ==========
-    var btnPeriods = document.getElementById('btnPeriods');
-    var mobileMenu = document.getElementById('mobileMenu');
-    var closeMobileMenu = document.getElementById('closeMobileMenu');
-
-    // Функция замены заголовка на мобильный
-    function setMobileTitle() {
-        var titleImg = document.querySelector('#mapTitleContainer img');
-        if (window.innerWidth <= 768) {
-            if (titleImg) {
-                titleImg.src = 'https://raw.githubusercontent.com/ekrss04/Data-/main/visual/title_mobile.svg';
-            }
-        } else {
-            if (titleImg) {
-                titleImg.src = 'https://raw.githubusercontent.com/ekrss04/Data-/main/visual/title_new.svg';
+        if (data[name]) {
+            const p = document.getElementById('modelPopup');
+            if (p) {
+                document.getElementById('modelTitle').textContent = name;
+                document.getElementById('modelDescription').textContent = data[name].desc;
+                const img = document.getElementById('modelImage');
+                img.src = data[name].img;
+                img.alt = name;
+                img.style.width = '100%';
+                img.style.height = '200px';
+                img.style.objectFit = 'cover';
+                img.style.borderRadius = '6px';
+                img.style.border = '2px solid rgba(255, 255, 255, 0.3)';
+                p.style.display = 'block';
+                currentPopup = p;
             }
         }
     }
-    setMobileTitle();
-    window.addEventListener('resize', setMobileTitle);
 
-    // Открытие/закрытие панели по кнопке периодов
-    if (btnPeriods) {
-        btnPeriods.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (mobileMenu.classList.contains('active')) {
-                mobileMenu.classList.remove('active');
-            } else {
-                showMobilePeriodList();
-                mobileMenu.classList.add('active');
-            }
-        });
+    function closeAllPopups() {
+        document.querySelectorAll('.popup-container').forEach(p => p.style.display = 'none');
+        currentPopup = null;
+    }
+const mobileMenu = document.getElementById("mobileMenu");
+const btnMenu = document.getElementById("btnMenu");
+const closeMobileMenu = document.getElementById("closeMobileMenu");
+
+btnMenu.addEventListener("click", () => {
+  mobileMenu.classList.add("active");
+});
+
+closeMobileMenu.addEventListener("click", () => {
+  mobileMenu.classList.remove("active");
+});
+
+document.querySelectorAll(".mobilePeriod").forEach(item => {
+
+  item.addEventListener("click", () => {
+
+    mobileMenu.classList.remove("active");
+
+    const modalId = item.dataset.modal;
+
+    const modal = document.getElementById(modalId);
+
+    if (modal) {
+      modal.style.display = "block";
     }
 
-    // Закрытие по крестику
-    if (closeMobileMenu) {
-        closeMobileMenu.addEventListener('click', function() {
-            mobileMenu.classList.remove('active');
-            setTimeout(function() { showMobilePeriodList(); }, 300);
-        });
-    }
+  });
 
-    // Закрытие по клику вне панели
-    document.addEventListener('click', function(e) {
-        if (mobileMenu && mobileMenu.classList.contains('active')) {
-            if (!mobileMenu.contains(e.target) && e.target !== btnPeriods) {
-                mobileMenu.classList.remove('active');
-                setTimeout(function() { showMobilePeriodList(); }, 300);
-            }
-        }
-    });
-
-    // Перехват кликов на кнопки периодов в таймлайне (только для мобильных)
-    document.querySelectorAll('.period-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            if (window.innerWidth <= 768) {
-                e.preventDefault();
-                e.stopPropagation();
-                var year = this.dataset.year;
-                var key = null;
-                if (year == 1850) key = 'altai';
-                else if (year == 1921) key = 'merchant';
-                else if (year == 1991) key = 'soviet';
-                else if (year == 2027) key = 'modern';
-                if (key) {
-                    showMobilePeriodDetail(key);
-                }
-            }
-        });
-    });
-      
+});
     // Обработчик кликов
     viewer.screenSpaceEventHandler.setInputAction(function(m) {
         const pickedObject = viewer.scene.pick(m.position);

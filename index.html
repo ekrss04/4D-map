@@ -46,7 +46,6 @@
   <div id="btnLayers" class="ui-btn"></div>
   <div id="btnWalk" class="ui-btn"></div>
   <div id="btnMenu" class="ui-btn"></div>
-  <div id="btnPeriods" class="ui-btn"></div>
 </div>
 
 <!-- ОКНА ИСТОРИЧЕСКИХ ПЕРИОДОВ -->
@@ -176,33 +175,56 @@
 <!-- ВСПЛЫВАЮЩЕЕ ОКНО ДЛЯ МОДЕЛЕЙ -->
 <div id="modelPopup" class="popup-container model-popup">
   <div class="popup-bg-wrapper">
+
     <img src="https://raw.githubusercontent.com/ekrss04/Data-/main/visual/popup_1.svg"
          alt="Фон всплывающего окна"
          class="popup-bg">
 
     <div class="popup-content">
+
       <span class="popup-close">&times;</span>
+
       <h3 id="modelTitle" class="popup-title"></h3>
+
       <div id="modelDescription" class="popup-description"></div>
+
       <div id="modelImageContainer" class="popup-image-container">
         <img id="modelImage" src="" alt="" class="popup-image">
       </div>
+
     </div>
   </div>
 </div>
 
 <!-- MOBILE MENU -->
 <div id="mobileMenu">
+
   <div class="mobileMenuHeader">
-    <span id="mobileMenuTitle">Исторические периоды</span>
+    Исторические периоды
     <span id="closeMobileMenu">✕</span>
   </div>
-  <div id="mobileMenuContent">
-    <!-- Контент будет заполняться динамически через JavaScript -->
+
+  <div class="mobilePeriod" data-modal="modalAltai">
+    Алтайское селение
+  </div>
+
+  <div class="mobilePeriod" data-modal="modalMerchant">
+    Купеческий период
+  </div>
+
+  <div class="mobilePeriod" data-modal="modalSoviet">
+    Советский период
+  </div>
+
+  <div class="mobilePeriod" data-modal="modalModern">
+    Современный город
+  </div>
+
+</div>
+</div>
+    </div>
   </div>
 </div>
-
-</body>
     <script src='https://cdn.jsdelivr.net/npm/cesium@1.115.0/Build/Cesium/Cesium.js'></script>
 <script src='https://cdn.jsdelivr.net/npm/cesium@1.115.0/Build/Cesium/Widgets/widgets.js'></script><script  src="./script.js"></script>
 
